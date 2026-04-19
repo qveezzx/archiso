@@ -34,10 +34,12 @@ jobs:
           # 5. Copy airootfs if it exists
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
           
-          # 6. Enable SDDM and NetworkManager
+          # 6. Enable LightDM, NetworkManager, and Liveuser Setup
           mkdir -p custom-profile/airootfs/etc/systemd/system/multi-user.target.wants
-          ln -sf /usr/lib/systemd/system/sddm.service custom-profile/airootfs/etc/systemd/system/display-manager.service
+          mkdir -p custom-profile/airootfs/etc/systemd/system/display-manager.service.d
+          ln -sf /usr/lib/systemd/system/lightdm.service custom-profile/airootfs/etc/systemd/system/display-manager.service
           ln -sf /usr/lib/systemd/system/NetworkManager.service custom-profile/airootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service
+          ln -sf /etc/systemd/system/liveuser-setup.service custom-profile/airootfs/etc/systemd/system/multi-user.target.wants/liveuser-setup.service
 
       - name: Build ISO natively
         run: |

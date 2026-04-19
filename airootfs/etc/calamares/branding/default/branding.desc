@@ -1,0 +1,27 @@
+---
+componentName:  default
+
+strings:
+    productName:         ZuccOS
+    shortProductName:    ZuccOS
+    productVersion:      rolling
+    shortProductVersion: rolling
+    versionedName:       ZuccOS rolling
+    shortVersionedName:  ZuccOS rolling
+    bootloaderEntryName: ZuccOS
+    productUrl:          https://github.com/qveezzx
+    supportUrl:          https://github.com/qveezzx
+    releaseNotesUrl:     https://github.com/qveezzx
+
+images:
+    productLogo:         "logo.png"
+    productIcon:         "logo.png"
+    productWelcome:      "welcome.png"
+
+slideshow:               "slideshow.qml"
+
+style:
+   sidebarBackground:    "#2c3e50"
+   sidebarText:          "#ffffff"
+   sidebarTextSelect:    "#2980b9"
+   sidebarTextHighlight: #34495e

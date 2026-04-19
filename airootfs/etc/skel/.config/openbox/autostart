@@ -1,0 +1,2 @@
+# Start Calamares automatically
+pkexec calamares &
