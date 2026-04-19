@@ -19,31 +19,30 @@ jobs:
 
       - name: Prepare Custom Profile
         run: |
-          # 1. Copy the official Arch 'releng' profile to a new folder
+          # 1. Copy the official Arch 'releng' profile
           cp -r /usr/share/archiso/configs/releng custom-profile
           
-          # 2. Change the name of the ISO from 'archlinux' to your custom name
+          # 2. Change the ISO name
           sed -i 's/iso_name="archlinux"/iso_name="my-custom-arch"/g' custom-profile/profiledef.sh
           
-          # 3. Append your custom shopping list to the official package list
+          # 3. Append your custom shopping list
           cat packages.x86_64 >> custom-profile/packages.x86_64
           
-          # 4. Use your Rackspace pacman.conf to prevent 404 errors
+          # 4. Use your custom pacman.conf
           cp pacman.conf custom-profile/pacman.conf
           
-          # 5. Copy any custom files you made (like os-release) into the profile
+          # 5. Copy airootfs if it exists
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
           
-          # 6. Enable SDDM (KDE Auto-Login) and NetworkManager
+          # 6. Enable SDDM and NetworkManager
           mkdir -p custom-profile/airootfs/etc/systemd/system/multi-user.target.wants
           ln -sf /usr/lib/systemd/system/sddm.service custom-profile/airootfs/etc/systemd/system/display-manager.service
           ln -sf /usr/lib/systemd/system/NetworkManager.service custom-profile/airootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service
 
-      - name: Build ISO
-        uses: coderadu/actions-mkarchiso@v1
-        with:
-          # Tell the builder to use our newly patched folder
-          build-dir: 'custom-profile'
+      - name: Build ISO natively
+        run: |
+          mkdir -p out
+          mkarchiso -v -w work -o out custom-profile
 
       - name: Upload ISO
         uses: actions/upload-artifact@v4
