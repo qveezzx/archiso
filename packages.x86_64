@@ -1,6 +1,7 @@
 # CORE
 base
-linux
+linux-cachyos
+linux-cachyos-rt-bore
 linux-firmware
 sudo
 networkmanager

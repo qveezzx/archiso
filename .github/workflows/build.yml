@@ -23,6 +23,10 @@ jobs:
           echo -e "\n[arcolinux_repo]\nSigLevel = Optional TrustAll\nServer = https://arcolinux.github.io/arcolinux_repo/\$arch" >> /etc/pacman.conf
           echo -e "\n[arcolinux_repo_3party]\nSigLevel = Optional TrustAll\nServer = https://arcolinux.github.io/arcolinux_repo_3party/\$arch" >> /etc/pacman.conf
           echo -e "\n[endeavouros]\nSigLevel = Optional TrustAll\nServer = https://mirrors.tuna.tsinghua.edu.cn/endeavouros/repo/endeavouros/\$arch" >> /etc/pacman.conf
+          echo -e "\n[cachyos]\nSigLevel = Optional TrustAll\nServer = https://mirror.cachyos.org/repo/\$arch/\$repo" >> /etc/pacman.conf
+          echo -e "\n[cachyos-v4]\nSigLevel = Optional TrustAll\nServer = https://mirror.cachyos.org/repo/x86_64_v4/\$repo" >> /etc/pacman.conf
+          echo -e "\n[cachyos-core-v4]\nSigLevel = Optional TrustAll\nServer = https://mirror.cachyos.org/repo/x86_64_v4/\$repo" >> /etc/pacman.conf
+          echo -e "\n[cachyos-extra-v4]\nSigLevel = Optional TrustAll\nServer = https://mirror.cachyos.org/repo/x86_64_v4/\$repo" >> /etc/pacman.conf
           
           # 2. Update and install archiso
           pacman -Syu --noconfirm archiso
@@ -38,6 +42,14 @@ jobs:
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_label=\".*\"/iso_label=\"ZUCC_$Z_DATE\"/g" custom-profile/profiledef.sh
+          
+          # 2.1. Update bootloader configs for CachyOS kernel
+          # Standard Archiso releng profile uses 'vmlinuz-linux' and 'initramfs-linux.img'
+          # We swap them to 'vmlinuz-linux-cachyos' and 'initramfs-linux-cachyos.img'
+          find custom-profile -type f -name "*.conf" -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos/g' {} +
+          find custom-profile -type f -name "*.conf" -exec sed -i 's/initramfs-linux.img/initramfs-linux-cachyos.img/g' {} +
+          find custom-profile -type f -name "*.cfg" -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos/g' {} +
+          find custom-profile -type f -name "*.cfg" -exec sed -i 's/initramfs-linux.img/initramfs-linux-cachyos.img/g' {} +
           
           # 3. Append your custom shopping list
           cat packages.x86_64 >> custom-profile/packages.x86_64
