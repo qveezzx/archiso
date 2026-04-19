@@ -829,29 +829,27 @@ async function fetchAsset(extension) {
   try {
     const res = await fetch('https://api.github.com/repos/qveezzx/archiso/releases/latest');
     const data = await res.json();
-    
-    // Find the asset. If it's an ISO, specifically look for one starting with 'zuccos-'
-    const asset = data.assets.find(a => {
-      if (extension === '.iso') {
-        return a.name.startsWith('zuccos-') && a.name.endsWith('.iso');
-      }
-      return a.name.endsWith(extension);
-    });
 
-    if (asset) {
-      if (extension === 'build.log') {
-        // Direct download for logs to avoid CORS issues in the browser
-        window.open(asset.browser_download_url, '_blank');
-      } else {
-        // Standard download for the .iso
-        window.location.href = asset.browser_download_url;
+    if (extension === '.iso') {
+      // Parse the artifact URL out of the release body markdown
+      const match = data.body.match(/https:\/\/github\.com\/qveezzx\/archiso\/actions\/runs\/\d+\/artifacts\/\d+/);
+      if (match) {
+        window.open(match[0], '_blank');
         closeDownloadWarning();
+      } else {
+        alert('ISO artifact link not found in latest release. It may have expired (90 days).');
       }
     } else {
-      alert(`Latest ${extension === '.iso' ? 'ZuccOS ISO' : extension} not found in the latest build.`);
+      // build.log is still a real release asset
+      const asset = data.assets.find(a => a.name.endsWith(extension));
+      if (asset) {
+        window.open(asset.browser_download_url, '_blank');
+      } else {
+        alert(`${extension} not found in the latest release.`);
+      }
     }
   } catch (e) {
-    alert('Error fetching assets. Please try again later.');
+    alert('Error fetching release info. Please try again later.');
   }
 }
 

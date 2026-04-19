@@ -4,9 +4,13 @@ linux-cachyos
 linux-cachyos-rt-bore
 linux-firmware
 sudo
+base-devel
 networkmanager
-grub
 efibootmgr
+yay
+git
+chaotic-keyring
+cachyos-keyring
 
 # INSTALLER
 calamares
@@ -22,3 +26,8 @@ openbox
 lightdm
 lightdm-gtk-greeter
 xterm
+xf86-video-fbdev
+tint2
+nitrogen
+obconf
+lxappearance
