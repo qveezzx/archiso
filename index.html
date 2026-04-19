@@ -116,7 +116,6 @@
       overflow: hidden;
     }
 
-    /* subtle radial glow behind hero text */
     .hero::after {
       content: '';
       position: absolute;
@@ -130,7 +129,6 @@
       z-index: 0;
     }
 
-    /* grid lines bg */
     .hero-grid {
       position: absolute;
       inset: 0;
@@ -244,7 +242,6 @@
       border-color: rgba(255,255,255,0.15);
     }
 
-    /* ── version badge ── */
     .version-info {
       margin-top: 3rem;
       display: flex;
@@ -270,10 +267,7 @@
     }
 
     /* ── sections ── */
-    section {
-      position: relative;
-      z-index: 1;
-    }
+    section { position: relative; z-index: 1; }
 
     .section-label {
       font-family: var(--mono);
@@ -313,13 +307,6 @@
       line-height: 1.7;
     }
 
-    /* ── divider ── */
-    .divider {
-      width: 100%;
-      height: 1px;
-      background: var(--line);
-    }
-
     /* ── specs ── */
     #specs {
       padding: 6rem 2rem;
@@ -328,14 +315,8 @@
       border-bottom: 1px solid var(--line);
     }
 
-    .specs-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .specs-header {
-      margin-bottom: 3.5rem;
-    }
+    .specs-inner { max-width: 1100px; margin: 0 auto; }
+    .specs-header { margin-bottom: 3.5rem; }
 
     .specs-grid {
       display: grid;
@@ -395,10 +376,7 @@
     }
 
     /* ── quickstart ── */
-    #quickstart {
-      padding: 7rem 2rem;
-    }
-
+    #quickstart { padding: 7rem 2rem; }
     .quickstart-inner {
       max-width: 1100px;
       margin: 0 auto;
@@ -409,16 +387,7 @@
     }
 
     @media (max-width: 768px) {
-      .quickstart-inner {
-        grid-template-columns: 1fr;
-        gap: 3rem;
-      }
-    }
-
-    .steps-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
+      .quickstart-inner { grid-template-columns: 1fr; gap: 3rem; }
     }
 
     .step {
@@ -427,7 +396,6 @@
       gap: 1.25rem;
       padding: 1.75rem 0;
       border-bottom: 1px solid var(--line);
-      position: relative;
     }
 
     .step:first-child { border-top: 1px solid var(--line); }
@@ -447,16 +415,11 @@
       font-weight: 500;
       color: #fff;
       margin-bottom: 0.4rem;
-      letter-spacing: -0.01em;
     }
 
-    .step-desc {
-      font-size: 0.83rem;
-      color: var(--muted);
-      line-height: 1.65;
-    }
+    .step-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.65; }
 
-    /* terminal block */
+    /* terminal */
     .terminal {
       background: #0c0c0e;
       border: 1px solid var(--line);
@@ -474,28 +437,17 @@
       background: var(--bg-3);
     }
 
-    .terminal-bar .dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-    }
+    .terminal-bar .dot { width: 10px; height: 10px; border-radius: 50%; }
     .terminal-bar .dot.r { background: #ff5f56; }
     .terminal-bar .dot.y { background: #ffbd2e; }
     .terminal-bar .dot.g { background: #27c93f; }
 
     .terminal-bar .t-title {
-      margin-left: auto;
-      margin-right: auto;
-      font-size: 0.68rem;
-      color: var(--muted);
-      letter-spacing: 0.04em;
+      margin-left: auto; margin-right: auto;
+      font-size: 0.68rem; color: var(--muted);
     }
 
-    .terminal-body {
-      padding: 1.4rem 1.6rem;
-      font-size: 0.78rem;
-      line-height: 2;
-    }
-
+    .terminal-body { padding: 1.4rem 1.6rem; font-size: 0.78rem; line-height: 2; }
     .t-line { display: flex; gap: 8px; align-items: flex-start; }
     .t-prompt { color: var(--accent); user-select: none; }
     .t-cmd { color: #c8d3e0; }
@@ -504,59 +456,21 @@
     .t-blank { height: 0.8rem; }
 
     /* ── footer ── */
-    footer {
-      border-top: 1px solid var(--line);
-      background: var(--bg);
-      padding: 2.5rem 2rem;
-    }
-
+    footer { border-top: 1px solid var(--line); background: var(--bg); padding: 2.5rem 2rem; }
     .footer-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
     }
-
-    .footer-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .footer-logo {
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-    }
-
-    .footer-copy {
-      font-size: 0.75rem;
-      color: var(--muted);
-      opacity: 0.5;
-    }
-
-    .footer-right {
-      display: flex;
-      align-items: center;
-      gap: 1.25rem;
-    }
-
+    .footer-left { display: flex; align-items: center; gap: 1rem; }
+    .footer-logo { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+    .footer-copy { font-size: 0.75rem; color: var(--muted); opacity: 0.5; }
+    .footer-right { display: flex; align-items: center; gap: 1.25rem; }
     .footer-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--muted);
-      text-decoration: none;
-      letter-spacing: 0.04em;
-      transition: color 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--mono); font-size: 0.75rem; color: var(--muted);
+      text-decoration: none; transition: color 0.2s;
     }
-
     .footer-link:hover { color: var(--text); }
 
     /* ── animations ── */
@@ -564,71 +478,41 @@
       from { opacity: 0; transform: translateY(18px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-
-    .fade-up {
-      animation: fadeUp 0.6s ease both;
-    }
+    .fade-up { animation: fadeUp 0.6s ease both; }
     .delay-1 { animation-delay: 0.05s; }
     .delay-2 { animation-delay: 0.15s; }
     .delay-3 { animation-delay: 0.25s; }
     .delay-4 { animation-delay: 0.35s; }
     .delay-5 { animation-delay: 0.45s; }
 
-    /* cursor blink */
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0; }
-    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     .cursor {
-      display: inline-block;
-      width: 8px;
-      height: 1em;
-      background: var(--accent);
-      margin-left: 2px;
-      vertical-align: middle;
-      animation: blink 1.1s step-end infinite;
+      display: inline-block; width: 8px; height: 1em; background: var(--accent);
+      margin-left: 2px; vertical-align: middle; animation: blink 1.1s step-end infinite;
     }
 
-    /* spec card number */
     .spec-num {
-      position: absolute;
-      bottom: 1.25rem;
-      right: 1.5rem;
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      color: var(--muted);
+      position: absolute; bottom: 1.25rem; right: 1.5rem;
+      font-family: var(--mono); font-size: 0.65rem; color: var(--muted);
       opacity: 0.3;
-      letter-spacing: 0.06em;
     }
+
     /* ── modal ── */
     #dl-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
+      position: fixed; inset: 0; z-index: 999;
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
     }
 
     .modal-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.72);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
     }
 
     .modal-box {
-      position: relative;
-      z-index: 1;
-      background: var(--bg-3);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-top: 1px solid rgba(255,200,50,0.25);
-      border-radius: 5px;
-      max-width: 480px;
-      width: 100%;
-      padding: 2rem 2rem 1.75rem;
+      position: relative; z-index: 1;
+      background: var(--bg-3); border: 1px solid rgba(255,255,255,0.1);
+      border-top: 1px solid rgba(255,200,50,0.25); border-radius: 5px;
+      max-width: 480px; width: 100%; padding: 2rem 2rem 1.75rem;
       box-shadow: 0 24px 64px rgba(0,0,0,0.6);
       animation: modalIn 0.22s cubic-bezier(0.34,1.56,0.64,1) forwards;
     }
@@ -638,44 +522,23 @@
       to   { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    .modal-icon-row {
-      margin-bottom: 1.1rem;
-    }
-
     .modal-icon {
-      width: 38px; height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 180, 0, 0.1);
-      border: 1px solid rgba(255, 180, 0, 0.25);
-      border-radius: 4px;
-      color: #f0b429;
+      width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+      background: rgba(255, 180, 0, 0.1); border: 1px solid rgba(255, 180, 0, 0.25);
+      border-radius: 4px; color: #f0b429; margin-bottom: 1.1rem;
     }
 
-    .modal-title {
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: #fff;
-      letter-spacing: -0.015em;
-      margin-bottom: 0.85rem;
-    }
-
-    .modal-body {
-      font-size: 0.875rem;
-      color: var(--muted);
-      line-height: 1.7;
-      margin-bottom: 1.25rem;
-    }
-
-    .modal-body strong { color: #c8c8d0; font-weight: 500; }
+    .modal-title { font-size: 1.05rem; font-weight: 600; color: #fff; margin-bottom: 0.85rem; }
+    .modal-body { font-size: 0.875rem; color: var(--muted); line-height: 1.7; margin-bottom: 1.25rem; }
+    .modal-body strong { color: #c8c8d0; }
     .modal-body em { font-style: normal; color: #f0b429; }
 
+    /* FIXED MODAL LIST STYLES */
     .modal-list {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 0.55rem;
+      gap: 0.75rem;
       margin-bottom: 1.25rem;
       padding: 1rem 1.1rem;
       background: rgba(255,255,255,0.03);
@@ -685,17 +548,17 @@
 
     .modal-list li {
       display: flex;
-      align-items: flex-start;
-      gap: 9px;
+      align-items: flex-start; /* Aligns icon to top of text block */
+      gap: 12px;
       font-family: var(--mono);
       font-size: 0.75rem;
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.5;
     }
 
     .modal-list li i {
-      flex-shrink: 0;
-      margin-top: 2px;
+      flex-shrink: 0; /* Prevents icon from squishing */
+      margin-top: 2px; /* Optical alignment with first line of text */
       color: var(--accent);
       opacity: 0.8;
     }
@@ -704,69 +567,32 @@
       color: var(--accent);
       text-decoration: none;
       border-bottom: 1px solid var(--accent-border);
-      transition: border-color 0.2s;
-    }
-    .modal-list a:hover { border-color: var(--accent); }
-
-    .modal-footer-note {
-      font-size: 0.78rem;
-      font-family: var(--mono);
-      color: var(--muted);
-      opacity: 0.55;
-      margin-bottom: 1.5rem;
+      white-space: nowrap; /* Keeps the link text together */
     }
 
-    .modal-actions {
-      display: flex;
-      gap: 0.75rem;
-      justify-content: flex-end;
-    }
+    .modal-footer-note { font-size: 0.78rem; font-family: var(--mono); color: var(--muted); opacity: 0.55; margin-bottom: 1.5rem; }
+
+    .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
 
     .modal-btn-cancel {
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      color: var(--muted);
-      background: transparent;
-      border: 1px solid var(--line);
-      border-radius: 3px;
-      padding: 0.6rem 1.1rem;
-      cursor: pointer;
-      letter-spacing: 0.03em;
-      transition: color 0.2s, border-color 0.2s;
+      font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+      background: transparent; border: 1px solid var(--line); border-radius: 3px;
+      padding: 0.6rem 1.1rem; cursor: pointer; transition: 0.2s;
     }
-
-    .modal-btn-cancel:hover {
-      color: var(--text);
-      border-color: rgba(255,255,255,0.15);
-    }
+    .modal-btn-cancel:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
 
     .modal-btn-confirm {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      font-family: var(--sans);
-      font-size: 0.83rem;
-      font-weight: 500;
-      color: #fff;
-      background: var(--accent);
-      border: none;
-      border-radius: 3px;
-      padding: 0.6rem 1.25rem;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background 0.2s, transform 0.15s;
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; font-family: var(--sans); font-size: 0.83rem; font-weight: 500;
+      color: #fff; background: var(--accent); border: none; border-radius: 3px;
+      padding: 0.6rem 1.25rem; cursor: pointer; transition: 0.2s;
     }
-
-    .modal-btn-confirm:hover {
-      background: #3498db;
-      transform: translateY(-1px);
-    }
+    .modal-btn-confirm:hover { background: #3498db; transform: translateY(-1px); }
 
   </style>
 </head>
 <body>
 
-  <!-- ────────────────── NAV ────────────────── -->
   <nav>
     <div class="nav-logo">
       <span class="dot"></span>
@@ -779,7 +605,6 @@
     </div>
   </nav>
 
-  <!-- ────────────────── HERO ────────────────── -->
   <section class="hero" id="home">
     <div class="hero-grid"></div>
     <div class="hero-content">
@@ -820,7 +645,6 @@
     </div>
   </section>
 
-  <!-- ────────────────── SPECS ────────────────── -->
   <section id="specs">
     <div class="specs-inner">
       <div class="specs-header">
@@ -830,51 +654,36 @@
       </div>
 
       <div class="specs-grid">
-
         <div class="spec-card">
-          <div class="spec-icon">
-            <i data-lucide="layers" style="width:17px;height:17px;"></i>
-          </div>
+          <div class="spec-icon"><i data-lucide="layers" style="width:17px;height:17px;"></i></div>
           <div class="spec-name">Arch Based</div>
           <div class="spec-desc">Pure Arch upstream.<br/>pacman. AUR. The real thing.</div>
           <div class="spec-num">01</div>
         </div>
-
         <div class="spec-card">
-          <div class="spec-icon">
-            <i data-lucide="layout" style="width:17px;height:17px;"></i>
-          </div>
+          <div class="spec-icon"><i data-lucide="layout" style="width:17px;height:17px;"></i></div>
           <div class="spec-name">Openbox WM</div>
           <div class="spec-desc">Lightweight window manager.<br/>You control every pixel.</div>
           <div class="spec-num">02</div>
         </div>
-
         <div class="spec-card">
-          <div class="spec-icon">
-            <i data-lucide="hard-drive-download" style="width:17px;height:17px;"></i>
-          </div>
+          <div class="spec-icon"><i data-lucide="hard-drive-download" style="width:17px;height:17px;"></i></div>
           <div class="spec-name">Calamares Installer</div>
           <div class="spec-desc">Graphical install in minutes.<br/>No hand-holding required.</div>
           <div class="spec-num">03</div>
         </div>
-
         <div class="spec-card">
-          <div class="spec-icon">
-            <i data-lucide="refresh-cw" style="width:17px;height:17px;"></i>
-          </div>
+          <div class="spec-icon"><i data-lucide="refresh-cw" style="width:17px;height:17px;"></i></div>
           <div class="spec-name">Rolling Release</div>
           <div class="spec-desc">Always current. No version<br/>upgrades, ever.</div>
           <div class="spec-num">04</div>
         </div>
-
       </div>
     </div>
   </section>
 
-  <!-- ────────────────── QUICKSTART ────────────────── -->
   <section id="quickstart">
     <div class="quickstart-inner">
-
       <div>
         <p class="section-label">Quick start</p>
         <h2 class="section-title">Up and running<br/>in three steps.</h2>
@@ -907,106 +716,77 @@
         </div>
       </div>
 
-      <!-- terminal -->
       <div>
         <div class="terminal">
           <div class="terminal-bar">
-            <div class="dot r"></div>
-            <div class="dot y"></div>
-            <div class="dot g"></div>
+            <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
             <span class="t-title">bash — 80×24</span>
           </div>
           <div class="terminal-body">
-            <div class="t-line">
-              <span class="t-prompt">#</span>
-              <span class="t-cmd t-comment">— verify the image</span>
-            </div>
-            <div class="t-line">
-              <span class="t-prompt">$</span>
-              <span class="t-cmd">sha256sum zuccos-latest.iso</span>
-            </div>
-            <div class="t-line">
-              <span class="t-out">a4f3bc7d...&nbsp;&nbsp;zuccos-latest.iso</span>
-            </div>
+            <div class="t-line"><span class="t-prompt">#</span> <span class="t-cmd t-comment">— verify the image</span></div>
+            <div class="t-line"><span class="t-prompt">$</span> <span class="t-cmd">sha256sum zuccos-latest.iso</span></div>
+            <div class="t-line"><span class="t-out">a4f3bc7d...&nbsp;&nbsp;zuccos-latest.iso</span></div>
             <div class="t-blank"></div>
-            <div class="t-line">
-              <span class="t-prompt">#</span>
-              <span class="t-cmd t-comment">— flash to /dev/sdX (replace X)</span>
-            </div>
-            <div class="t-line">
-              <span class="t-prompt">$</span>
-              <span class="t-cmd">sudo dd if=zuccos-latest.iso \</span>
-            </div>
-            <div class="t-line" style="padding-left:16px;">
-              <span class="t-cmd">of=/dev/sdX bs=4M status=progress</span>
-            </div>
+            <div class="t-line"><span class="t-prompt">#</span> <span class="t-cmd t-comment">— flash to /dev/sdX</span></div>
+            <div class="t-line"><span class="t-prompt">$</span> <span class="t-cmd">sudo dd if=zuccos-latest.iso \</span></div>
+            <div class="t-line" style="padding-left:16px;"><span class="t-cmd">of=/dev/sdX bs=4M status=progress</span></div>
             <div class="t-blank"></div>
-            <div class="t-line">
-              <span class="t-prompt">#</span>
-              <span class="t-cmd t-comment">— after install: update the system</span>
-            </div>
-            <div class="t-line">
-              <span class="t-prompt">$</span>
-              <span class="t-cmd">sudo pacman -Syu</span>
-            </div>
-            <div class="t-line">
-              <span class="t-out">:: Synchronising package databases...</span>
-            </div>
-            <div class="t-line">
-              <span class="t-out">:: Starting full system upgrade...</span>
-            </div>
-            <div class="t-line">
-              <span class="t-out" style="color:var(--accent);">there is nothing to do<span class="cursor"></span></span>
-            </div>
+            <div class="t-line"><span class="t-prompt">#</span> <span class="t-cmd t-comment">— update the system</span></div>
+            <div class="t-line"><span class="t-prompt">$</span> <span class="t-cmd">sudo pacman -Syu</span></div>
+            <div class="t-line"><span class="t-out">:: Synchronising package databases...</span></div>
+            <div class="t-line"><span class="t-out">:: Starting full system upgrade...</span></div>
+            <div class="t-line"><span class="t-out" style="color:var(--accent);">there is nothing to do<span class="cursor"></span></span></div>
           </div>
         </div>
-
-        <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;line-height:1.7;">
-          Prefer a GUI? Ventoy and Balena Etcher work just as well.<br/>
-          The live session is fully usable before installing.
-        </p>
       </div>
-
     </div>
   </section>
 
-  <!-- ────────────────── DOWNLOAD MODAL ────────────────── -->
   <div id="dl-modal" aria-modal="true" role="dialog" aria-labelledby="dl-modal-title" style="display:none;">
     <div class="modal-backdrop" onclick="closeDownloadWarning()"></div>
     <div class="modal-box">
-      <div class="modal-icon-row">
-        <div class="modal-icon">
-          <i data-lucide="triangle-alert" style="width:18px;height:18px;"></i>
-        </div>
+      <div class="modal-icon">
+        <i data-lucide="triangle-alert" style="width:18px;height:18px;"></i>
       </div>
       <h2 class="modal-title" id="dl-modal-title">Heads up before you download</h2>
       <p class="modal-body">
-        ZuccOS follows a <strong>rolling release</strong> model — builds are pushed directly from the repository and are <em>not pre-tested</em> before they go live. What you're about to download is the latest available snapshot, not a stable, QA'd release.
+        ZuccOS follows a <strong>rolling release</strong> model — builds are pushed directly from the repository and are <em>not pre-tested</em>. What you're about to download is the latest available snapshot.
       </p>
+      
       <ul class="modal-list">
-        <li><i data-lucide="git-branch" style="width:12px;height:12px;"></i> Check the <a href="https://github.com/qveezzx/archiso/issues" target="_blank" rel="noopener" style="white-space: nowrap;">Issues tab</a> for known problems with the current build.</li>
-        <li><i data-lucide="file-text" style="width:12px;height:12px;"></i> Read recent commits on <a href="https://github.com/qveezzx/archiso/commits" target="_blank" rel="noopener" style="white-space: nowrap;">GitHub</a> to see what changed.</li>
-        <li><i data-lucide="shield-alert" style="width:12px;height:12px;"></i> Always verify the SHA256 checksum after downloading.</li>
+        <li>
+          <i data-lucide="git-branch" style="width:14px;height:14px;"></i>
+          <span>Check the <a href="https://github.com/qveezzx/archiso/issues" target="_blank" rel="noopener" class="whitespace-nowrap" style="color:var(--accent); border-bottom: 1px solid var(--accent-border);">Issues tab</a> for known problems with the current build.</span>
+        </li>
+        <li>
+          <i data-lucide="file-text" style="width:14px;height:14px;"></i>
+          <span>Read recent commits on <a href="https://github.com/qveezzx/archiso/commits" target="_blank" rel="noopener">GitHub</a> to see what changed.</span>
+        </li>
+        <li>
+          <i data-lucide="shield-alert" style="width:14px;height:14px;"></i>
+          <span>Always verify the SHA256 checksum after downloading.</span>
+        </li>
       </ul>
+
       <p class="modal-footer-note">
         If you hit a broken build, opening an issue is genuinely appreciated.
       </p>
+      
       <div class="modal-actions">
         <button class="modal-btn-cancel" onclick="closeDownloadWarning()">Go back</button>
         <button class="modal-btn-confirm" onclick="fetchAsset('.iso')">
-          <i data-lucide="download" style="width:14px;height:14px;"></i>
-          I understand, download anyway
+          <i data-lucide="download" style="width:15px;height:15px;"></i>
+          I understand, download
         </button>
       </div>
     </div>
   </div>
 
-  <!-- ────────────────── FOOTER ────────────────── -->
   <footer>
     <div class="footer-inner">
       <div class="footer-left">
         <span class="footer-logo">ZuccOS</span>
-        <span class="footer-copy">&copy; 2025 — MIT License</span>
+        <span class="footer-copy">&copy; 2026 - MIT License</span>
       </div>
       <div class="footer-right">
         <a href="https://github.com/qveezzx/archiso" class="footer-link" target="_blank" rel="noopener">
@@ -1028,13 +808,12 @@
   <script>
     lucide.createIcons();
 
-    // ── download warning modal ──
     const modal = document.getElementById('dl-modal');
 
     function openDownloadWarning() {
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
-      lucide.createIcons(); // re-init icons inside modal
+      lucide.createIcons();
     }
 
     function closeDownloadWarning() {
@@ -1042,36 +821,40 @@
       document.body.style.overflow = '';
     }
 
-    // close on Escape
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && modal.style.display === 'flex') closeDownloadWarning();
     });
 
-    async function fetchAsset(extension) {
-      try {
-        const res = await fetch('https://api.github.com/repos/qveezzx/archiso/releases/latest');
-        const data = await res.json();
-        
-        // Find the asset. If it's an ISO, specifically look for one starting with 'zuccos-'
-        const asset = data.assets.find(a => {
-          if (extension === '.iso') {
-            return a.name.startsWith('zuccos-') && a.name.endsWith('.iso');
-          }
-          return a.name.endsWith(extension);
-        });
-
-        if (asset) {
-          window.location.href = asset.browser_download_url;
-          closeDownloadWarning();
-        } else {
-          alert(`Latest ${extension === '.iso' ? 'ZuccOS ISO' : extension} not found in the latest build.`);
-        }
-      } catch (e) {
-        alert('Error fetching latest release. Please try again later.');
+async function fetchAsset(extension) {
+  try {
+    const res = await fetch('https://api.github.com/repos/qveezzx/archiso/releases/latest');
+    const data = await res.json();
+    
+    // Find the asset. If it's an ISO, specifically look for one starting with 'zuccos-'
+    const asset = data.assets.find(a => {
+      if (extension === '.iso') {
+        return a.name.startsWith('zuccos-') && a.name.endsWith('.iso');
       }
-    }
+      return a.name.endsWith(extension);
+    });
 
-    // Intersection observer for scroll-triggered fade-in on spec cards & steps
+    if (asset) {
+      if (extension === 'build.log') {
+        // Direct download for logs to avoid CORS issues in the browser
+        window.open(asset.browser_download_url, '_blank');
+      } else {
+        // Standard download for the .iso
+        window.location.href = asset.browser_download_url;
+        closeDownloadWarning();
+      }
+    } else {
+      alert(`Latest ${extension === '.iso' ? 'ZuccOS ISO' : extension} not found in the latest build.`);
+    }
+  } catch (e) {
+    alert('Error fetching assets. Please try again later.');
+  }
+}
+
     const els = document.querySelectorAll('.spec-card, .step');
     const obs = new IntersectionObserver((entries) => {
       entries.forEach(e => {
