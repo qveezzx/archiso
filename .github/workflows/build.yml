@@ -32,8 +32,11 @@ jobs:
           # 1. Copy the official Arch 'releng' profile
           cp -r /usr/share/archiso/configs/releng custom-profile
           
-          # 2. Change the ISO name
-          sed -i 's/iso_name="archlinux"/iso_name="my-custom-arch"/g' custom-profile/profiledef.sh
+          # 2. Change the ISO name and version (format: zuccos-YYMMDD)
+          Z_DATE=$(date +%y%m%d)
+          sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
+          sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
+          sed -i "s/iso_label=\".*\"/iso_label=\"ZUCC_$Z_DATE\"/g" custom-profile/profiledef.sh
           
           # 3. Append your custom shopping list
           cat packages.x86_64 >> custom-profile/packages.x86_64
