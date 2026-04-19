@@ -1,0 +1,6 @@
+NAME="ZuccOS"
+PRETTY_NAME="ZuccOS"
+ID=arch
+BUILD_ID=rolling
+ANSI_COLOR="0;36"
+HOME_URL="https://github.com/qveezzx"

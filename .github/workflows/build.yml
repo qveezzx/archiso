@@ -1,0 +1,21 @@
+name: Build Arch ISO
+on: [push]
+
+jobs:
+  archiso:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build ISO
+        uses: archlinux/archiso-action@v1
+        with:
+          profile: .
+          output-file: my-custom-arch.iso
+
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Custom-Arch-ISO
+          path: my-custom-arch.iso

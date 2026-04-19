@@ -1,0 +1,19 @@
+# CORE
+base
+linux
+linux-firmware
+sudo
+networkmanager
+grub
+efibootmgr
+
+# KDE PLASMA DESKTOP
+plasma-desktop
+sddm
+konsole
+dolphin
+
+# APPLICATIONS
+firefox
+neofetch
+git
