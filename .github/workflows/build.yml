@@ -17,10 +17,21 @@ jobs:
       - name: Install dependencies
         run: pacman -Syu --noconfirm archiso
 
+      - name: Prepare KDE Startup
+        run: |
+          # Create the folder structure for systemd services
+          mkdir -p airootfs/etc/systemd/system/getty@tty1.service.d
+          mkdir -p airootfs/etc/systemd/system/multi-user.target.wants
+          
+          # This creates the link to ensure SDDM (KDE Login) starts on boot
+          ln -sf /usr/lib/systemd/system/sddm.service airootfs/etc/systemd/system/display-manager.service
+          
+          # Optional: Enable NetworkManager so Wi-Fi works immediately
+          ln -sf /usr/lib/systemd/system/NetworkManager.service airootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service
+
       - name: Build ISO
         uses: coderadu/actions-mkarchiso@v1
         with:
-          # This tells the action your config files are in the main folder
           build-dir: '.'
 
       - name: Upload ISO
