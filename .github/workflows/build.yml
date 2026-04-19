@@ -16,17 +16,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # 1. Setup Repos on host
-          pacman-key --init
-          
-          # Chaotic-AUR
-          pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
-          pacman-key --lsign-key 3056513887B78AEB
-          echo -e "\n[chaotic-aur]\nServer = https://cdn-mirror.chaotic.cx/chaotic-aur/\$arch" >> /etc/pacman.conf
-          
-          # ArcoLinux
-          pacman-key --recv-key 74F2DE61 --keyserver keyserver.ubuntu.com
-          pacman-key --lsign-key 74F2DE61
+          # 1. Setup Repos on host (using TrustAll to avoid flaky keyservers)
+          echo -e "\n[chaotic-aur]\nSigLevel = Optional TrustAll\nServer = https://cdn-mirror.chaotic.cx/chaotic-aur/\$arch" >> /etc/pacman.conf
           echo -e "\n[arcolinux_repo]\nSigLevel = Optional TrustAll\nServer = https://mirror.arcolinux.com/repo/\$repo/\$arch" >> /etc/pacman.conf
           
           # 2. Update and install archiso
