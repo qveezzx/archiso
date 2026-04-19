@@ -8,14 +8,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build ISO
-        uses: archlinux/archiso-action@v1
+      - name: Build Archiso
+        # This is a reliable community action for building Arch
+        uses: anton-shulgin/archiso-action@v2
         with:
-          profile: .
-          output-file: my-custom-arch.iso
+          iso_name: my-custom-arch
+          # We tell the action to use the current directory as the profile
+          profile_path: .
 
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Custom-Arch-ISO
-          path: my-custom-arch.iso
+          path: output/*.iso
