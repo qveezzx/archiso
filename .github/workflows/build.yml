@@ -1,23 +1,30 @@
-name: Build Arch ISO
-on: [push]
+name: Build ISO
+
+on:
+  push:
+    branches: [main]
 
 jobs:
-  archiso:
+  build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
+    container: 
+      image: archlinux:latest
+      options: --privileged
+    steps: 
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build Archiso
-        # This is a reliable community action for building Arch
-        uses: anton-shulgin/archiso-action@v2
-        with:
-          iso_name: my-custom-arch
-          # We tell the action to use the current directory as the profile
-          profile_path: .
+      - name: Install dependencies
+        run: pacman -Syu --noconfirm archiso
 
-      - name: Upload ISO Artifact
+      - name: Build ISO
+        uses: coderadu/actions-mkarchiso@v1
+        with:
+          # This tells the action your config files are in the main folder
+          build-dir: '.'
+
+      - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
-          name: Custom-Arch-ISO
-          path: output/*.iso
+          name: archlinux-iso
+          path: out/*.iso
