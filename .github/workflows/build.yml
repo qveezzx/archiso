@@ -16,10 +16,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # 1. Setup Repos on host (using reliable mirrors to avoid DNS/connectivity issues)
+          # 1. Setup Repos on host (using university/provider mirrors for stability)
           echo -e "\n[chaotic-aur]\nSigLevel = Optional TrustAll\nServer = https://cdn-mirror.chaotic.cx/chaotic-aur/\$arch" >> /etc/pacman.conf
-          echo -e "\n[arcolinux_repo]\nSigLevel = Optional TrustAll\nServer = https://mirror.funami.tech/arcolinux/repo/\$repo/\$arch\nServer = https://ant.seedhost.eu/arcolinux/repo/\$repo/\$arch" >> /etc/pacman.conf
-          echo -e "\n[alci_repo]\nSigLevel = Optional TrustAll\nServer = https://pkg.alci.online/repo/\$repo/\$arch" >> /etc/pacman.conf
+          echo -e "\n[arcolinux_repo]\nSigLevel = Optional TrustAll\nServer = https://ftp.belnet.be/mirror/arcolinux/\$repo/\$arch" >> /etc/pacman.conf
+          echo -e "\n[endeavouros]\nSigLevel = Optional TrustAll\nServer = https://mirror.cregit.net/endeavouros/repo/\$repo/\$arch" >> /etc/pacman.conf
           
           # 2. Update and install archiso
           pacman -Syu --noconfirm archiso
