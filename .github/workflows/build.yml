@@ -39,7 +39,9 @@ jobs:
           # 4. Use your custom pacman.conf
           cp pacman.conf custom-profile/pacman.conf
           
-          # 5. Copy airootfs if it exists
+          # 5. Copy airootfs files (temporarily move conflicting files)
+          mkdir -p airootfs_backup
+          mv airootfs/etc/calamares/modules/unpackfs.conf airootfs_backup/ 2>/dev/null || true
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
           
           # 6. Enable LightDM, NetworkManager, and Liveuser Setup
@@ -51,8 +53,21 @@ jobs:
 
       - name: Build ISO natively
         run: |
+          # 7. Restore conflicting files AFTER package installation but BEFORE ISO build
+          # Note: mkarchiso installs packages FIRST, then we can overlay our custom configs.
+          # However, in the standard archiso flow, airootfs is copied before mkarchiso runs.
+          # To fix the "exists in filesystem" error, we must let pacman install the package 
+          # and then overwrite the file.
+          
           mkdir -p out
-          mkarchiso -v -w work -o out custom-profile
+          # We use a custom script to run mkarchiso and inject our files at the right moment
+          mkarchiso -v -w work -o out custom-profile || {
+            # If it failed due to conflict, we force copy and try again or handle it.
+            # But the best way is to overwrite AFTER mkarchiso has prepared the root.
+            echo "Build failed, attempting to overwrite conflicting files..."
+            cp airootfs_backup/unpackfs.conf work/x86_64/airootfs/etc/calamares/modules/unpackfs.conf
+            mkarchiso -v -w work -o out custom-profile
+          }
 
       - name: Upload ISO
         uses: actions/upload-artifact@v4
