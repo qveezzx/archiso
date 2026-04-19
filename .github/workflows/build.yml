@@ -74,3 +74,16 @@ jobs:
         with:
           name: archlinux-iso
           path: out/*.iso
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: latest
+          name: Latest Build
+          files: out/*.iso
+          body: |
+            Automated build of ZuccOS.
+            Built on: ${{ github.event.head_commit.timestamp }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
