@@ -17,22 +17,33 @@ jobs:
       - name: Install dependencies
         run: pacman -Syu --noconfirm archiso
 
-      - name: Prepare KDE Startup
+      - name: Prepare Custom Profile
         run: |
-          # Create the folder structure for systemd services
-          mkdir -p airootfs/etc/systemd/system/getty@tty1.service.d
-          mkdir -p airootfs/etc/systemd/system/multi-user.target.wants
+          # 1. Copy the official Arch 'releng' profile to a new folder
+          cp -r /usr/share/archiso/configs/releng custom-profile
           
-          # This creates the link to ensure SDDM (KDE Login) starts on boot
-          ln -sf /usr/lib/systemd/system/sddm.service airootfs/etc/systemd/system/display-manager.service
+          # 2. Change the name of the ISO from 'archlinux' to your custom name
+          sed -i 's/iso_name="archlinux"/iso_name="my-custom-arch"/g' custom-profile/profiledef.sh
           
-          # Optional: Enable NetworkManager so Wi-Fi works immediately
-          ln -sf /usr/lib/systemd/system/NetworkManager.service airootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service
+          # 3. Append your custom shopping list to the official package list
+          cat packages.x86_64 >> custom-profile/packages.x86_64
+          
+          # 4. Use your Rackspace pacman.conf to prevent 404 errors
+          cp pacman.conf custom-profile/pacman.conf
+          
+          # 5. Copy any custom files you made (like os-release) into the profile
+          cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
+          
+          # 6. Enable SDDM (KDE Auto-Login) and NetworkManager
+          mkdir -p custom-profile/airootfs/etc/systemd/system/multi-user.target.wants
+          ln -sf /usr/lib/systemd/system/sddm.service custom-profile/airootfs/etc/systemd/system/display-manager.service
+          ln -sf /usr/lib/systemd/system/NetworkManager.service custom-profile/airootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service
 
       - name: Build ISO
         uses: coderadu/actions-mkarchiso@v1
         with:
-          build-dir: '.'
+          # Tell the builder to use our newly patched folder
+          build-dir: 'custom-profile'
 
       - name: Upload ISO
         uses: actions/upload-artifact@v4
