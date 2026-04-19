@@ -54,26 +54,24 @@ jobs:
       - name: Build ISO natively
         run: |
           # 7. Restore conflicting files AFTER package installation but BEFORE ISO build
-          # Note: mkarchiso installs packages FIRST, then we can overlay our custom configs.
-          # However, in the standard archiso flow, airootfs is copied before mkarchiso runs.
-          # To fix the "exists in filesystem" error, we must let pacman install the package 
-          # and then overwrite the file.
-          
+          mkdir -p airootfs_backup
           mkdir -p out
-          # We use a custom script to run mkarchiso and inject our files at the right moment
-          mkarchiso -v -w work -o out custom-profile || {
-            # If it failed due to conflict, we force copy and try again or handle it.
-            # But the best way is to overwrite AFTER mkarchiso has prepared the root.
-            echo "Build failed, attempting to overwrite conflicting files..."
+          
+          # Capture build logs to a file
+          echo "Starting build at $(date)" > build.log
+          mkarchiso -v -w work -o out custom-profile 2>&1 | tee -a build.log || {
+            echo "Build failed, attempting to overwrite conflicting files..." | tee -a build.log
             cp airootfs_backup/unpackfs.conf work/x86_64/airootfs/etc/calamares/modules/unpackfs.conf
-            mkarchiso -v -w work -o out custom-profile
+            mkarchiso -v -w work -o out custom-profile 2>&1 | tee -a build.log
           }
 
-      - name: Upload ISO
+      - name: Upload ISO and Logs
         uses: actions/upload-artifact@v4
         with:
-          name: archlinux-iso
-          path: out/*.iso
+          name: zuccos-build-assets
+          path: |
+            out/*.iso
+            build.log
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -81,9 +79,17 @@ jobs:
         with:
           tag_name: latest
           name: Latest Build
-          files: out/*.iso
+          files: |
+            out/*.iso
+            build.log
           body: |
-            Automated build of ZuccOS.
+            ### ⚠️ Rolling Release Warning
+            This is an automated build of **ZuccOS**. 
+            - **Status**: Unchecked / Experimental
+            - **Type**: Rolling Release
+            
+            Please check the [build logs](https://github.com/${{ github.repository }}/releases/download/latest/build.log) for any warnings or errors before installing.
+            
             Built on: ${{ github.event.head_commit.timestamp }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
