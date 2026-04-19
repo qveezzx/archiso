@@ -28,6 +28,6 @@ lightdm-gtk-greeter
 xterm
 xf86-video-fbdev
 tint2
-nitrogen
-obconf
+feh
+obconf-qt
 lxappearance
