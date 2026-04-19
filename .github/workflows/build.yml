@@ -34,6 +34,7 @@ jobs:
           
           # 2. Change the ISO name and version (format: zuccos-YYMMDD)
           Z_DATE=$(date +%y%m%d)
+          echo "Z_DATE=$Z_DATE" >> $GITHUB_ENV
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_label=\".*\"/iso_label=\"ZUCC_$Z_DATE\"/g" custom-profile/profiledef.sh
@@ -82,8 +83,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
         with:
-          tag_name: latest
-          name: Latest Build
+          tag_name: v${{ env.Z_DATE }}-${{ github.run_number }}
+          name: ZuccOS Build ${{ env.Z_DATE }} (Run ${{ github.run_number }})
+          make_latest: true
           files: |
             out/*.iso
             build.log
@@ -91,9 +93,10 @@ jobs:
             ### ⚠️ Rolling Release Warning
             This is an automated build of **ZuccOS**. 
             - **Status**: Unchecked / Experimental
-            - **Type**: Rolling Release
+            - **Version**: ${{ env.Z_DATE }}
+            - **Build ID**: ${{ github.run_number }}
             
-            Please check the [build logs](https://github.com/${{ github.repository }}/releases/download/latest/build.log) for any warnings or errors before installing.
+            Please check the build logs included in this release before installing.
             
             Built on: ${{ github.event.head_commit.timestamp }}
         env:
