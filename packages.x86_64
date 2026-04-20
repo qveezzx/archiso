@@ -46,7 +46,6 @@ picom
 
 # --- INSTALLER (Calamares) ---
 cachyos-calamares
-cachyos-calamares-config
 kpmcore
 polkit-qt5
 qt5-svg

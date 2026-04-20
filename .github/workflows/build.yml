@@ -55,6 +55,10 @@ jobs:
       - name: Prepare Custom Profile
         run: |
           cp -r /usr/share/archiso/configs/releng custom-profile
+
+          # Replace the default package list with YOURS entirely
+          # This removes 'linux' and all the other bloat
+          cp packages.x86_64 custom-profile/packages.x86_64
           
           # FORCE EXTREME COMPRESSION TO STAY UNDER LIMIT
           sed -i 's/airootfs_compression="zstd"/airootfs_compression=("xz" "-Xbcj" "x86" "-9" "--extreme")/g' custom-profile/profiledef.sh
@@ -63,6 +67,7 @@ jobs:
           echo "Z_DATE=$Z_DATE" >> $GITHUB_ENV
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
+          
           
           # Kernel Swaps
           find custom-profile -type f -name "*.conf" -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
