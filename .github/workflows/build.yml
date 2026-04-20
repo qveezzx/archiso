@@ -61,41 +61,49 @@ jobs:
 
       - name: Prepare Custom Profile
         run: |
+          # STEP 0: Copy the base template (CRITICAL)
           cp -r /usr/share/archiso/configs/releng custom-profile
-          
-          # 1. Clean Package List
+
+          # STEP 1: Create the custom mkinitcpio.conf
+          # This fixes the "Switch Root" crash by providing necessary hooks
+          mkdir -p custom-profile/airootfs/etc/
+          echo 'MODULES=()
+          BINARIES=()
+          FILES=()
+          HOOKS=(base udev memdisk archiso_loop_mnt archiso archiso_pxe_common archiso_pxe_nbd archiso_pxe_http archiso_pxe_nfs archiso_kms block filesystems keyboard)
+          COMPRESSION="xz"' > custom-profile/airootfs/etc/mkinitcpio.conf
+
+          # STEP 2: Clean Package List
           sed -i '/base-devel/d' packages.x86_64
           cp packages.x86_64 custom-profile/packages.x86_64
           
-          # 2. ISO Naming & Compression
+          # STEP 3: ISO Naming & Compression
           sed -i 's/airootfs_compression="zstd"/airootfs_compression=("xz" "-Xbcj" "x86" "-9" "--extreme")/g' custom-profile/profiledef.sh
           Z_DATE=$(date +%y%m%d)
           echo "Z_DATE=$Z_DATE" >> $GITHUB_ENV
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
 
-          # 3. THE PRESET: Force mkinitcpio to use our specific naming
+          # STEP 4: THE PRESET
           mkdir -p custom-profile/airootfs/etc/mkinitcpio.d/
           echo 'PRESETS=("main")
           main_config="/etc/mkinitcpio.conf"
           main_image="/boot/initramfs-linux.img"
           main_kver="/boot/vmlinuz-linux-cachyos-rt-bore"' > custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
 
-          # 4. THE BOOTLOADER FIX: Update BOTH BIOS (.cfg) and UEFI (.conf)
-          # We swap the kernel name and ensure the initrd is correct
+          # STEP 5: Update Bootloader Configs (BIOS & UEFI)
           find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
-          # Force any reference to initramfs-linux-cachyos back to the standard name we set in the preset
           find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/initramfs-linux-cachyos-rt-bore.img/initramfs-linux.img/g' {} +
 
-          # 5. Autologin
+          # STEP 6: Autologin
           mkdir -p custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/
           echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM" > custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
 
-          # 6. Final Sync
+          # STEP 7: Final Sync
           cp pacman.conf custom-profile/pacman.conf
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
 
-          # 7. Force the correct HOOKS for Archiso
+          # 8. Force the correct HOOKS for Archiso
           # This ensures the initramfs knows it is booting from an ISO
           sed -i 's/^HOOKS=.*/HOOKS=(base udev memdisk archiso_loop_mnt archiso archiso_pxe_common archiso_pxe_nbd archiso_pxe_http archiso_pxe_nfs archiso_kms block filesystems keyboard)/' custom-profile/airootfs/etc/mkinitcpio.conf
 
