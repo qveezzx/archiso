@@ -1,183 +1,103 @@
-name: Build ISO
-
+name: Build ZuccOS ISO
 on:
   push:
-    branches: [main]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    container: 
+    container:
       image: archlinux:latest
       options: --privileged
-    steps: 
-      - name: Checkout
+    steps:
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
-          # 1. Basic Keyring Update (Arch standard)
           pacman-key --init
           pacman-key --populate archlinux
           pacman -Sy --noconfirm archlinux-keyring
-
-          # 2. Setup Chaotic-AUR Keys & Repo first
-          # This allows us to use their mirrorlist for the config
+          
+          # Setup Chaotic-AUR for the builder environment
           pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
           pacman-key --lsign-key 3056513887B78AEB
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
 
-          # 3. Create the pacman.conf BEFORE installing archiso
-          # This forces the builder to use Arch [core]/[extra] for system tools
+          # Configure builder pacman.conf (Arch first for stability)
           cat << 'EOF' > /etc/pacman.conf
           [options]
           HoldPkg = pacman glibc
           Architecture = auto
           SigLevel = Never
-
           [core]
           Include = /etc/pacman.d/mirrorlist
-
           [extra]
           Include = /etc/pacman.d/mirrorlist
-
           [cachyos]
           SigLevel = Never
           Server = https://mirror.cachyos.org/repo/x86_64/cachyos
-
           [chaotic-aur]
           Include = /etc/pacman.d/chaotic-mirrorlist
           EOF
 
-          # 4. Final Sync and Install
-          # Now that the repos are ordered correctly, we install the tools
           pacman -Syy
           pacman -S --noconfirm archiso wget git yaml-cpp boost-libs
 
       - name: Prepare Custom Profile
         run: |
-          # STEP 0: Copy the base template (CRITICAL)
+          # 1. Copy base template
           cp -r /usr/share/archiso/configs/releng custom-profile
-
-          # STEP 1: Create the custom mkinitcpio.conf
-          # This fixes the "Switch Root" crash by providing necessary hooks
-          mkdir -p custom-profile/airootfs/etc/
-          echo 'MODULES=()
-          BINARIES=()
-          FILES=()
-          HOOKS=(base udev memdisk archiso_loop_mnt archiso archiso_pxe_common archiso_pxe_nbd archiso_pxe_http archiso_pxe_nfs archiso_kms block filesystems keyboard)
-          COMPRESSION="xz"' > custom-profile/airootfs/etc/mkinitcpio.conf
-
-          # STEP 2: Clean Package List
-          sed -i '/base-devel/d' packages.x86_64
-          cp packages.x86_64 custom-profile/packages.x86_64
           
-          # STEP 3: ISO Naming & Compression
-          sed -i 's/airootfs_compression="zstd"/airootfs_compression=("xz" "-Xbcj" "x86" "-9" "--extreme")/g' custom-profile/profiledef.sh
+          # 2. Create the mkinitcpio.conf with ARCHISO hooks
+          mkdir -p custom-profile/airootfs/etc/
+          echo 'HOOKS=(base udev memdisk archiso_loop_mnt archiso archiso_pxe_common archiso_pxe_nbd archiso_pxe_http archiso_pxe_nfs archiso_kms block filesystems keyboard)' > custom-profile/airootfs/etc/mkinitcpio.conf
+
+          # 3. Apply Package List & Naming
+          cp packages.x86_64 custom-profile/packages.x86_64
           Z_DATE=$(date +%y%m%d)
           echo "Z_DATE=$Z_DATE" >> $GITHUB_ENV
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
+          
+          # Use XZ extreme compression to keep it under 2GB
+          sed -i 's/airootfs_compression="zstd"/airootfs_compression=("xz" "-Xbcj" "x86" "-9" "--extreme")/g' custom-profile/profiledef.sh
 
-          # STEP 4: THE PRESET
+          # 4. Kernel Preset & Bootloader logic
           mkdir -p custom-profile/airootfs/etc/mkinitcpio.d/
           echo 'PRESETS=("main")
           main_config="/etc/mkinitcpio.conf"
           main_image="/boot/initramfs-linux.img"
           main_kver="/boot/vmlinuz-linux-cachyos-rt-bore"' > custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
 
-          # STEP 5: Update Bootloader Configs (BIOS & UEFI)
           find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
           find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/initramfs-linux-cachyos-rt-bore.img/initramfs-linux.img/g' {} +
 
-          # STEP 6: Autologin
-          mkdir -p custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/
-          echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM" > custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
-
-          # STEP 7: Final Sync
+          # 5. Sync files from your repo
           cp pacman.conf custom-profile/pacman.conf
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
 
-          # STEP 8: THE OVERRIDE (Put it here!)
-          # 1. Wipe the root password (Makes it blank/null)
-          # This ensures 'root' with no password works on TTY2
+          # 6. THE OVERRIDE: Unlock root & Autologin (The Final Step)
           sed -i 's/^root:[^:]*:/root::/' custom-profile/airootfs/etc/shadow
-
-          # 2. Fix Autologin (Ensuring it uses the null password)
           mkdir -p custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/
           echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM" > custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
-          
-          # 3. Final cleanup/fixes
-          # Ensure root's home directory exists so shell configs can load
-          mkdir -p custom-profile/airootfs/root
 
-          # 9. Force the correct HOOKS for Archiso
-          # This ensures the initramfs knows it is booting from an ISO
-          sed -i 's/^HOOKS=.*/HOOKS=(base udev memdisk archiso_loop_mnt archiso archiso_pxe_common archiso_pxe_nbd archiso_pxe_http archiso_pxe_nfs archiso_kms block filesystems keyboard)/' custom-profile/airootfs/etc/mkinitcpio.conf
-
-      - name: Build ISO natively
+      - name: Build ISO
         run: |
           mkdir -p out
-          echo "Starting build at $(date)" > build.log
+          mkarchiso -v -w work -o out custom-profile/
 
-          # 1. First Pass: Remove conflicts so pacman can install the calamares package
-          rm -f custom-profile/airootfs/etc/calamares/modules/unpackfs.conf
-          rm -f custom-profile/airootfs/etc/calamares/modules/welcome.conf
-          rm -f custom-profile/airootfs/etc/calamares/modules/bootloader.conf
-          rm -f custom-profile/airootfs/etc/calamares/modules/packages.conf
-
-          # 2. Start the build (Pacman will install its default files now)
-          # We use the -w (work) directory to our advantage
-          mkarchiso -v -w work -o out custom-profile 2>&1 | tee -a build.log || {
-            echo "First pass failed as expected, or reached a check. Re-applying custom files..."
-          }
-
-          # 3. Second Pass: Overwrite the package's defaults with YOUR local files
-          # This copies your repo files directly into the 'work' directory where the ISO is being built
-          cp -rf airootfs/* work/x86_64/airootfs/ 2>/dev/null || true
-
-          # 4. Final Run: Run mkarchiso again. It will see the files are already there and 
-          # just finish the compression using YOUR versions.
-          mkarchiso -v -w work -o out custom-profile 2>&1 | tee -a build.log
-
-          # Get the size of the ISO and save it to GITHUB_ENV for the release body
-          ISO_SIZE_HUMAN=$(du -h out/*.iso | cut -f1)
-          echo "ISO_SIZE=$ISO_SIZE_HUMAN" >> $GITHUB_ENV
-
-      - name: Upload Artifact
-        id: upload_artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ZuccOS-ISO-${{ env.Z_DATE }}
-          path: |
-            out/*.iso
-            build.log
-          retention-days: 90
+      - name: Rename ISO for Easy Release
+        run: |
+          mv out/*.iso out/zuccos-latest.iso
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main'
         with:
-          tag_name: v${{ env.Z_DATE }}-${{ github.run_number }}
-          name: ZuccOS Build ${{ env.Z_DATE }} (Run ${{ github.run_number }})
-          make_latest: true
-          files: build.log
-          body: |
-            ### 📥 Download ZuccOS
-            GitHub Release direct upload failed because the ISO is **${{ env.ISO_SIZE }}** (Limit is 2GB).
-            
-            **Please download the ISO from the link below:**
-            👉 **[Download from GitHub Actions Mirror](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**
-            
-            *(Scroll to the bottom of the page to find the **zuccos-build-assets** download)*
-            
-            ---
-            **Build Details:**
-            - **Kernel:** `linux-cachyos-rt-bore`
-            - **Version:** ${{ env.Z_DATE }}
-            - **Compression:** XZ Extreme
+          tag_name: v${{ env.Z_DATE }}
+          name: ZuccOS Build ${{ env.Z_DATE }}
+          files: out/zuccos-latest.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
