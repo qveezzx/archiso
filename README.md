@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="banner.png" width="100%" alt="ZuccOS Banner">
+</p>
+
 # ZuccOS
 
 ZuccOS is a minimalist, performance-focused Arch Linux distribution. It’s designed to be fast on high-end PCs while remaining lightweight enough to run perfectly on older hardware. 
