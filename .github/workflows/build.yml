@@ -101,7 +101,20 @@ jobs:
           cp pacman.conf custom-profile/pacman.conf
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
 
-          # 8. Force the correct HOOKS for Archiso
+          # STEP 8: THE OVERRIDE (Put it here!)
+          # 1. Wipe the root password (Makes it blank/null)
+          # This ensures 'root' with no password works on TTY2
+          sed -i 's/^root:[^:]*:/root::/' custom-profile/airootfs/etc/shadow
+
+          # 2. Fix Autologin (Ensuring it uses the null password)
+          mkdir -p custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/
+          echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM" > custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
+          
+          # 3. Final cleanup/fixes
+          # Ensure root's home directory exists so shell configs can load
+          mkdir -p custom-profile/airootfs/root
+
+          # 9. Force the correct HOOKS for Archiso
           # This ensures the initramfs knows it is booting from an ISO
           sed -i 's/^HOOKS=.*/HOOKS=(base udev memdisk archiso_loop_mnt archiso archiso_pxe_common archiso_pxe_nbd archiso_pxe_http archiso_pxe_nfs archiso_kms block filesystems keyboard)/' custom-profile/airootfs/etc/mkinitcpio.conf
 
