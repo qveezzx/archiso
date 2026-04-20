@@ -628,7 +628,7 @@
           Download ISO
         </button>
         <a href="https://github.com/qveezzx/archiso" class="btn-ghost" target="_blank" rel="noopener">
-          <i data-lucide="github" style="width:14px;height:14px;"></i>
+          <i data-lucide="git-branch" style="width:14px;height:14px;"></i>
           View source
         </a>
       </div>
@@ -826,30 +826,22 @@
     });
 
 async function fetchAsset(extension) {
+  // If they want the build.log, we go to the latest release page
+  // If they want the ISO, we go to the latest release page (since we can't direct-link artifacts easily)
+  
   try {
-    const res = await fetch('https://api.github.com/repos/qveezzx/archiso/releases/latest');
-    const data = await res.json();
-
-    if (extension === '.iso') {
-      // Parse the artifact URL out of the release body markdown
-      const match = data.body.match(/https:\/\/github\.com\/qveezzx\/archiso\/actions\/runs\/\d+\/artifacts\/\d+/);
-      if (match) {
-        window.open(match[0], '_blank');
-        closeDownloadWarning();
-      } else {
-        alert('ISO artifact link not found in latest release. It may have expired (90 days).');
-      }
-    } else {
-      // build.log is still a real release asset
-      const asset = data.assets.find(a => a.name.endsWith(extension));
-      if (asset) {
-        window.open(asset.browser_download_url, '_blank');
-      } else {
-        alert(`${extension} not found in the latest release.`);
-      }
+    // This URL automatically redirects to the most recent release page on GitHub
+    const latestReleaseUrl = 'https://github.com/qveezzx/archiso/releases/latest';
+    
+    window.open(latestReleaseUrl, '_blank');
+    
+    // If you had a UI warning open, close it now
+    if (typeof closeDownloadWarning === "function") {
+      closeDownloadWarning();
     }
+    
   } catch (e) {
-    alert('Error fetching release info. Please try again later.');
+    alert('Error redirecting to release page. Please visit the repo directly.');
   }
 }
 

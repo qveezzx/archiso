@@ -98,29 +98,26 @@ jobs:
           retention-days: 90
 
       - name: Create Release
-        id: create_release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
         with:
           tag_name: v${{ env.Z_DATE }}-${{ github.run_number }}
           name: ZuccOS Build ${{ env.Z_DATE }} (Run ${{ github.run_number }})
           make_latest: true
-          # We only include build.log here initially to ensure the release is created
           files: build.log
           body: |
-            ### ⚠️ ISO Download Notice
-            The ISO for this build is currently available via the **GitHub Actions Artifacts** link below.
+            ### 📥 Download ZuccOS
+            GitHub Release direct upload failed because the ISO is **${{ env.ISO_SIZE }}** (Limit is 2GB).
             
-            **[⬇️ Download ZuccOS ISO + Logs](${{ env.ARTIFACT_URL }})**
+            **Please download the ISO from the link below:**
+            👉 **[Download from GitHub Actions Mirror](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**
             
-            *Note: If the direct ISO attachment is missing, it exceeded GitHub's 2GB release limit. Use the link above.*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Attempt ISO Upload to Release
-        # This step tries to upload the ISO, but continues even if it fails
-        continue-on-error: true
-        run: |
-          gh release upload v${{ env.Z_DATE }}-${{ github.run_number }} out/*.iso
+            *(Scroll to the bottom of the page to find the **zuccos-build-assets** download)*
+            
+            ---
+            **Build Details:**
+            - **Kernel:** `linux-cachyos-rt-bore`
+            - **Version:** ${{ env.Z_DATE }}
+            - **Compression:** XZ Extreme
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
