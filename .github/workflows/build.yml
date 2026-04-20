@@ -19,38 +19,22 @@ jobs:
       - name: Install dependencies
         run: |
           pacman-key --init
-          pacman -Sy --noconfirm archlinux-keyring
-          pacman -S --noconfirm wget
-
-          # Setup Chaotic-AUR Keyring
+          pacman -Sy --noconfirm archlinux-keyring archiso wget git
+          
+          # Setup Chaotic Keyring
           pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
           pacman-key --lsign-key 3056513887B78AEB
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
-          pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
 
-          # OVERWRITE pacman.conf to force CachyOS priority (#1)
-          # This ensures Calamares finds the correct library versions
-          echo '
-          [options]
-          HoldPkg = pacman glibc
-          Architecture = auto
-          SigLevel = Never
-
-          [cachyos]
-          Server = https://mirror.cachyos.org/repo/$arch/$repo
-
-          [chaotic-aur]
-          Include = /etc/pacman.d/chaotic-mirrorlist
-
-          [core]
-          Include = /etc/pacman.d/mirrorlist
-
-          [extra]
-          Include = /etc/pacman.d/mirrorlist
-          ' > /etc/pacman.conf
-
-          # Final sync and install archiso
-          pacman -Syu --noconfirm archiso
+          # Add CachyOS to the BOTTOM of the builder's conf
+          echo -e "\n[cachyos]\nSigLevel = Never\nServer = https://mirror.cachyos.org/repo/x86_64/\$repo" >> /etc/pacman.conf
+          
+          # FORCE synchronization
+          pacman -Sy
+          
+          # PRE-INSTALL the correct libraries so they are in the cache
+          # This prevents the library mismatch in Calamares later
+          pacman -S --noconfirm cachyos/yaml-cpp cachyos/boost-libs
 
       - name: Prepare Custom Profile
         run: |

@@ -1,4 +1,4 @@
-# --- BOOTLOADER ESSENTIALS (Mandatory) ---
+# --- BOOTLOADER ESSENTIALS ---
 syslinux
 grub
 mkinitcpio-archiso
@@ -8,11 +8,13 @@ memtest86+-efi
 
 # --- CORE SYSTEM ---
 base
+# Switching to generic linux-cachyos is safer for the BUILDER, 
+# but we will try rt-bore once more. 
 linux-cachyos-rt-bore
-# Headers are needed if you plan to compile drivers later
 linux-cachyos-rt-bore-headers
 sudo
-base-devel
+# base-devel is removed via sed in your YAML, keeping it here for reference
+base-devel 
 networkmanager
 efibootmgr
 yay
@@ -21,7 +23,6 @@ chaotic-keyring
 cachyos-keyring
 
 # --- FIRMWARE & MICROCODE ---
-# Good job here, keeping the essentials
 linux-firmware-marvell
 linux-firmware-intel
 linux-firmware-atheros
@@ -35,7 +36,6 @@ intel-ucode
 mesa
 xf86-video-nouveau
 xf86-video-fbdev
-# ADDING Intel and AMD video drivers for better performance
 xf86-video-intel
 xf86-video-amdgpu
 xorg-server
@@ -47,19 +47,18 @@ tint2
 feh
 obconf-qt
 lxappearance
-# ADDING a terminal that doesn't look like 1992
 kitty
-# ADDING a compositor (Fixes the "white boxes" and glitchy windows)
 picom
 
 # --- INSTALLER (Calamares) ---
 cachyos-calamares
+# CRITICAL: Added cachyos-settings to provide the branding/configs
+cachyos-settings
 kpmcore
 polkit-qt5
 qt5-svg
 ckbcomp
-# ADDING missing dependencies often skipped in live environments
+# Pinning these for Calamares compatibility
 yaml-cpp
 boost-libs
-# This allows Calamares to run as root from the GUI
 polkit-gnome
