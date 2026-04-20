@@ -26,14 +26,19 @@ jobs:
           pacman-key --lsign-key 3056513887B78AEB
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
 
-          # Add CachyOS to the BOTTOM of the builder's pacman.conf
-          # NOTE: We use \$repo (escaped) so bash doesn't think it is a blank variable
-          echo -e "\n[cachyos]\nSigLevel = Never\nServer = https://mirror.cachyos.org/repo/x86_64/\$repo" >> /etc/pacman.conf
+          # Force the CachyOS repo into pacman.conf with escaped variables
+          # We use single quotes around the EOF to prevent bash from expanding $arch and $repo
+          cat << 'EOF' >> /etc/pacman.conf
+
+          [cachyos]
+          SigLevel = Never
+          Server = https://mirror.cachyos.org/repo/x86_64/$repo
+          EOF
           
-          # Force a full database sync
+          # Sync twice to clear any partial metadata
           pacman -Syy
           
-          # Now it will find them
+          # Explicitly target the cachyos repo for these libraries
           pacman -S --noconfirm cachyos/yaml-cpp cachyos/boost-libs
 
       - name: Prepare Custom Profile
