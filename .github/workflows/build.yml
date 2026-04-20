@@ -85,6 +85,10 @@ jobs:
           
           # Capture build logs to a file
           echo "Starting build at $(date)" > build.log
+          # Remove conflicting calamares configs so package can install cleanly
+          rm -f custom-profile/airootfs/etc/calamares/modules/bootloader.conf
+          rm -f custom-profile/airootfs/etc/calamares/modules/packages.conf
+          rm -f custom-profile/airootfs/etc/calamares/modules/welcome.conf
           mkarchiso -v -w work -o out custom-profile 2>&1 | tee -a build.log || {
             echo "Build failed, attempting to overwrite conflicting files..." | tee -a build.log
             cp airootfs_backup/unpackfs.conf work/x86_64/airootfs/etc/calamares/modules/unpackfs.conf
