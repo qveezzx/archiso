@@ -1,11 +1,11 @@
 base
 linux-cachyos-rt-bore
 linux-firmware-marvell
-linux-firmware-iwlwifi
-linux-firmware-ath10k
+linux-firmware-intel
+linux-firmware-atheros
 linux-firmware-realtek
 linux-firmware-amdgpu
-linux-firmware-nouveau
+linux-firmware-nvidia
 amd-ucode
 intel-ucode
 mesa
