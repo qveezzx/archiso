@@ -46,34 +46,35 @@ jobs:
           pacman -Syy
           pacman -S --noconfirm archiso wget git yaml-cpp boost-libs
 
-      - name: Prepare Custom Profile
+      - name: Prepare and Build ISO
         run: |
-          # 1. Copy base template
+          # 1. Setup Base Profile
           cp -r /usr/share/archiso/configs/releng custom-profile
           
-          # 2. Fix the Package List
+          # 2. Fix Package List
           sed -i '/base-devel/d' packages.x86_64
           cp packages.x86_64 custom-profile/packages.x86_64
 
-          # 3. Pacman.conf Setup (THE KEY FIX)
-          # We tell pacman NOT to install the default Calamares configs 
-          # so your local ones can exist without conflict errors.
-          cp pacman.conf custom-profile/pacman.conf
-          sed -i 's/SigLevel = .*/SigLevel = Never/g' custom-profile/pacman.conf
-          sed -i '/\[options\]/a NoExtract = etc/calamares/modules/*' custom-profile/pacman.conf
-
-          # 4. Create the mkinitcpio.conf with ARCHISO hooks
+          # 3. Create the standard mkinitcpio.conf
           mkdir -p custom-profile/airootfs/etc/
           echo 'HOOKS=(base udev memdisk archiso_loop_mnt archiso archiso_pxe_common archiso_pxe_nbd archiso_pxe_http archiso_pxe_nfs archiso_kms block filesystems keyboard)' > custom-profile/airootfs/etc/mkinitcpio.conf
 
-          # 5. ISO Naming & Compression
+          # 4. Prepare Pacman with "Overwrite" and "NoExtract"
+          # This tells pacman: "Don't cry if a file exists, just overwrite it" 
+          # and "Don't even try to install the default calamares configs"
+          cp pacman.conf custom-profile/pacman.conf
+          sed -i 's/SigLevel = .*/SigLevel = Never/g' custom-profile/pacman.conf
+          sed -i '/\[options\]/a Overwrite = etc/calamares/modules/*' custom-profile/pacman.conf
+          sed -i '/\[options\]/a NoExtract = etc/calamares/modules/*' custom-profile/pacman.conf
+
+          # 5. ISO Naming & Extreme Compression
           Z_DATE=$(date +%y%m%d)
           echo "Z_DATE=$Z_DATE" >> $GITHUB_ENV
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
           sed -i 's/airootfs_compression="zstd"/airootfs_compression=("xz" "-Xbcj" "x86" "-9" "--extreme")/g' custom-profile/profiledef.sh
 
-          # 6. Kernel Preset & Bootloader logic
+          # 6. Kernel & Bootloader Setup
           mkdir -p custom-profile/airootfs/etc/mkinitcpio.d/
           echo 'PRESETS=("main")
           main_config="/etc/mkinitcpio.conf"
@@ -82,16 +83,16 @@ jobs:
           find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
           find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/initramfs-linux-cachyos-rt-bore.img/initramfs-linux.img/g' {} +
 
-          # 7. Final Sync: Copy YOUR repo files into the profile
+          # 7. Sync YOUR local files (The ones you want to keep)
+          # We copy them now; Pacman will skip its versions because of NoExtract
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
 
-          # 8. THE OVERRIDE: Unlock root & Autologin
+          # 8. Unlock root & Autologin
           sed -i 's/^root:[^:]*:/root::/' custom-profile/airootfs/etc/shadow
           mkdir -p custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/
           echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM" > custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
 
-      - name: Build ISO
-        run: |
+          # 9. RUN THE BUILD
           mkdir -p out
           mkarchiso -v -w work -o out custom-profile/
 
