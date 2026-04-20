@@ -56,40 +56,32 @@ jobs:
         run: |
           cp -r /usr/share/archiso/configs/releng custom-profile
 
-          # Replace the default package list with YOURS entirely
-          # This removes 'linux' and all the other bloat
+          # 1. Start with a fresh package list
+          # We do NOT 'cat >>' anymore to avoid duplicates
+          sed -i '/base-devel/d' packages.x86_64
           cp packages.x86_64 custom-profile/packages.x86_64
           
-          # FORCE EXTREME COMPRESSION TO STAY UNDER LIMIT
+          # 2. ISO Naming & Extreme Compression
           sed -i 's/airootfs_compression="zstd"/airootfs_compression=("xz" "-Xbcj" "x86" "-9" "--extreme")/g' custom-profile/profiledef.sh
-          
           Z_DATE=$(date +%y%m%d)
           echo "Z_DATE=$Z_DATE" >> $GITHUB_ENV
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
-          
-          
-          # Kernel Swaps
+
+          # 3. KERNEL LOGIC: Keep names simple so mkarchiso doesn't get lost
+          # We tell the preset to use the CachyOS kernel but output to the 'standard' name
+          sed -i 's|ALL_kver=(.*|ALL_kver=( /boot/vmlinuz-linux-cachyos-rt-bore )|g' custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
+          sed -i 's|archiso_image=(.*|archiso_image=( /boot/initramfs-linux.img )|g' custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
+
+          # 4. Bootloader Configs: Point them to the custom kernel + standard initramfs
           find custom-profile -type f -name "*.conf" -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
-          find custom-profile -type f -name "*.conf" -exec sed -i 's/initramfs-linux.img/initramfs-linux-cachyos-rt-bore.img/g' {} +
-
-          # Force the bootloaders to point to the correct kernel filename
-          sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' custom-profile/profiledef.sh
-
-          # Ensure autologin is set to root for the Live environment
+          # Note: We keep initramfs-linux.img here because that's what we named it in the preset above
+          
+          # 5. Autologin
           mkdir -p custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/
           echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM" > custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
 
-          # Force mkinitcpio to use the CachyOS RT-BORE kernel preset
-          # This prevents the "vmlinuz-linux not found" error
-          sed -i 's/ALL_kver=(.*/ALL_kver=( \/boot\/vmlinuz-linux-cachyos-rt-bore )/g' custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
-          
-          # Also ensure the output image name matches what the bootloader expects
-          sed -i 's/archiso_image=(.*/archiso_image=( \/boot\/initramfs-linux-cachyos-rt-bore.img )/g' custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
-          
-          # Size optimization: Remove base-devel from packages.x86_64 if it exists to save ~250MB
-          sed -i '/base-devel/d' packages.x86_64
-          cat packages.x86_64 >> custom-profile/packages.x86_64
+          # 6. Final file sync
           cp pacman.conf custom-profile/pacman.conf
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
 
