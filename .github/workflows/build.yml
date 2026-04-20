@@ -95,6 +95,10 @@ jobs:
           cp pacman.conf custom-profile/pacman.conf
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
 
+          # 7. Force the correct HOOKS for Archiso
+          # This ensures the initramfs knows it is booting from an ISO
+          sed -i 's/^HOOKS=.*/HOOKS=(base udev memdisk archiso_loop_mnt archiso archiso_pxe_common archiso_pxe_nbd archiso_pxe_http archiso_pxe_nfs archiso_kms block filesystems keyboard)/' custom-profile/airootfs/etc/mkinitcpio.conf
+
       - name: Build ISO natively
         run: |
           mkdir -p out
