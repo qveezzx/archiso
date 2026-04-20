@@ -43,6 +43,8 @@ jobs:
         run: |
           # 1. Copy the official Arch 'releng' profile
           cp -r /usr/share/archiso/configs/releng custom-profile
+
+          sed -i 's/airootfs_compression="zstd"/airootfs_compression="xz"/g' custom-profile/profiledef.sh
           
           # 2. Change the ISO name and version (format: zuccos-YYMMDD)
           Z_DATE=$(date +%y%m%d)

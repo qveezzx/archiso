@@ -1,8 +1,16 @@
 # CORE
 base
-linux-cachyos
 linux-cachyos-rt-bore
-linux-firmware
+# linux firmwares
+linux-firmware-marvell
+linux-firmware-iwlwifi
+linux-firmware-ath10k        # Qualcomm/Atheros (very common)
+linux-firmware-realtek       # Realtek (very common)
+amd-ucode                    # For AMD CPUs
+intel-ucode                  # For Intel CPUs
+mesa                       # Provides OpenGL for all GPUs
+xf86-video-nouveau         # Open-source driver for NVIDIA
+linux-firmware-nouveau     # Essential firmware for the open driver
 sudo
 base-devel
 networkmanager
