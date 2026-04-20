@@ -74,18 +74,19 @@ jobs:
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
 
-          # 3. THE FIX: Create a custom mkinitcpio preset from scratch
-          # This guarantees the file names match what mkarchiso looks for
+          # 3. THE PRESET: Force mkinitcpio to use our specific naming
           mkdir -p custom-profile/airootfs/etc/mkinitcpio.d/
           echo 'PRESETS=("main")
           main_config="/etc/mkinitcpio.conf"
           main_image="/boot/initramfs-linux.img"
           main_kver="/boot/vmlinuz-linux-cachyos-rt-bore"' > custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
 
-          # 4. Point Bootloaders to the CachyOS Kernel
-          find custom-profile -type f -name "*.conf" -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
-          # We leave initramfs-linux.img alone because our preset (above) now uses that name
-          
+          # 4. THE BOOTLOADER FIX: Update BOTH BIOS (.cfg) and UEFI (.conf)
+          # We swap the kernel name and ensure the initrd is correct
+          find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
+          # Force any reference to initramfs-linux-cachyos back to the standard name we set in the preset
+          find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/initramfs-linux-cachyos-rt-bore.img/initramfs-linux.img/g' {} +
+
           # 5. Autologin
           mkdir -p custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/
           echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM" > custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
