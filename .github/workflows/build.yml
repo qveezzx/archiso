@@ -18,20 +18,20 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # 1. Initialize and populate Arch keys
+          # 1. Basic Keyring Update (Arch standard)
           pacman-key --init
           pacman-key --populate archlinux
-          pacman -Sy --noconfirm archlinux-keyring archiso wget git
-          
-          # 2. Setup Chaotic-AUR (Used for yay and other tools)
+          pacman -Sy --noconfirm archlinux-keyring
+
+          # 2. Setup Chaotic-AUR Keys & Repo first
+          # This allows us to use their mirrorlist for the config
           pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
           pacman-key --lsign-key 3056513887B78AEB
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
 
-          # 3. Create a CLEAN pacman.conf for the BUILDER
-          # Arch is on TOP to ensure the builder uses v1/v2 binaries (No ISA crash)
-          # CachyOS is at the BOTTOM to provide the Kernel and Calamares
+          # 3. Create the pacman.conf BEFORE installing archiso
+          # This forces the builder to use Arch [core]/[extra] for system tools
           cat << 'EOF' > /etc/pacman.conf
           [options]
           HoldPkg = pacman glibc
@@ -52,12 +52,10 @@ jobs:
           Include = /etc/pacman.d/chaotic-mirrorlist
           EOF
 
-          # 4. Sync everything
+          # 4. Final Sync and Install
+          # Now that the repos are ordered correctly, we install the tools
           pacman -Syy
-
-          # 5. Install the dependencies WITHOUT the repo prefix
-          # Pacman will grab these from [extra] automatically
-          pacman -S --noconfirm yaml-cpp boost-libs
+          pacman -S --noconfirm archiso wget git yaml-cpp boost-libs
 
       - name: Prepare Custom Profile
         run: |
