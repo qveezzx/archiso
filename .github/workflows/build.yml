@@ -55,33 +55,35 @@ jobs:
       - name: Prepare Custom Profile
         run: |
           cp -r /usr/share/archiso/configs/releng custom-profile
-
-          # 1. Start with a fresh package list
-          # We do NOT 'cat >>' anymore to avoid duplicates
+          
+          # 1. Clean Package List
           sed -i '/base-devel/d' packages.x86_64
           cp packages.x86_64 custom-profile/packages.x86_64
           
-          # 2. ISO Naming & Extreme Compression
+          # 2. ISO Naming & Compression
           sed -i 's/airootfs_compression="zstd"/airootfs_compression=("xz" "-Xbcj" "x86" "-9" "--extreme")/g' custom-profile/profiledef.sh
           Z_DATE=$(date +%y%m%d)
           echo "Z_DATE=$Z_DATE" >> $GITHUB_ENV
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
 
-          # 3. KERNEL LOGIC: Keep names simple so mkarchiso doesn't get lost
-          # We tell the preset to use the CachyOS kernel but output to the 'standard' name
-          sed -i 's|ALL_kver=(.*|ALL_kver=( /boot/vmlinuz-linux-cachyos-rt-bore )|g' custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
-          sed -i 's|archiso_image=(.*|archiso_image=( /boot/initramfs-linux.img )|g' custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
+          # 3. THE FIX: Create a custom mkinitcpio preset from scratch
+          # This guarantees the file names match what mkarchiso looks for
+          mkdir -p custom-profile/airootfs/etc/mkinitcpio.d/
+          echo 'PRESETS=("main")
+          main_config="/etc/mkinitcpio.conf"
+          main_image="/boot/initramfs-linux.img"
+          main_kver="/boot/vmlinuz-linux-cachyos-rt-bore"' > custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
 
-          # 4. Bootloader Configs: Point them to the custom kernel + standard initramfs
+          # 4. Point Bootloaders to the CachyOS Kernel
           find custom-profile -type f -name "*.conf" -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
-          # Note: We keep initramfs-linux.img here because that's what we named it in the preset above
+          # We leave initramfs-linux.img alone because our preset (above) now uses that name
           
           # 5. Autologin
           mkdir -p custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/
           echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM" > custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
 
-          # 6. Final file sync
+          # 6. Final Sync
           cp pacman.conf custom-profile/pacman.conf
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
 
