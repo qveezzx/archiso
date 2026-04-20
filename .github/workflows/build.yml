@@ -20,11 +20,13 @@ jobs:
           pacman-key --populate archlinux
           pacman -Sy --noconfirm archlinux-keyring
           
+          # Setup Chaotic-AUR Keys
           pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
           pacman-key --lsign-key 3056513887B78AEB
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
 
+          # Force a clean builder pacman.conf
           cat << 'EOF' > /etc/pacman.conf
           [options]
           HoldPkg = pacman glibc
@@ -49,19 +51,34 @@ jobs:
           # 1. Setup Base Profile
           cp -r /usr/share/archiso/configs/releng custom-profile
           
-          # 2. Package List Cleanup
+          # 2. Hack mkarchiso to FORCE overwrite (The Nuclear Fix)
+          # This inserts '--overwrite "*"' into the pacman calls inside the mkarchiso script
+          sed -i 's/pacman --noconfirm/pacman --noconfirm --overwrite "*"/g' /usr/bin/mkarchiso
+
+          # 3. Clean up package list (Remove base-devel group)
           sed -i '/base-devel/d' packages.x86_64
           cp packages.x86_64 custom-profile/packages.x86_64
 
-          # 3. Pacman.conf: THE FIX
-          # Overwrite = * forces pacman to ignore conflicts
-          # NoExtract ensures pacman doesn't overwrite your custom calamares work
-          cp pacman.conf custom-profile/pacman.conf
-          sed -i 's/SigLevel = .*/SigLevel = Never/g' custom-profile/pacman.conf
-          sed -i '/\[options\]/a Overwrite = *' custom-profile/pacman.conf
-          sed -i '/\[options\]/a NoExtract = etc/calamares/modules/*' custom-profile/pacman.conf
+          # 4. Create a hard-coded pacman.conf for the ISO
+          # We use NoExtract to ensure your local Calamares files ARE NEVER OVERWRITTEN
+          cat << 'EOF' > custom-profile/pacman.conf
+          [options]
+          HoldPkg = pacman glibc
+          Architecture = auto
+          SigLevel = Never
+          NoExtract = etc/calamares/modules/*
+          [core]
+          Include = /etc/pacman.d/mirrorlist
+          [extra]
+          Include = /etc/pacman.d/mirrorlist
+          [cachyos]
+          SigLevel = Never
+          Server = https://mirror.cachyos.org/repo/x86_64/cachyos
+          [chaotic-aur]
+          Include = /etc/pacman.d/chaotic-mirrorlist
+          EOF
 
-          # 4. Kernel & Bootloader Setup
+          # 5. Bootloader & Kernel Logic
           mkdir -p custom-profile/airootfs/etc/mkinitcpio.d/
           echo 'HOOKS=(base udev memdisk archiso_loop_mnt archiso archiso_pxe_common archiso_pxe_nbd archiso_pxe_http archiso_pxe_nfs archiso_kms block filesystems keyboard)' > custom-profile/airootfs/etc/mkinitcpio.conf
           echo 'PRESETS=("main")
@@ -72,29 +89,29 @@ jobs:
           find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
           find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/initramfs-linux-cachyos-rt-bore.img/initramfs-linux.img/g' {} +
 
-          # 5. ISO Naming & Compression
+          # 6. ISO Naming & Compression
           Z_DATE=$(date +%y%m%d)
           echo "Z_DATE=$Z_DATE" >> $GITHUB_ENV
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
           sed -i 's/airootfs_compression="zstd"/airootfs_compression=("xz" "-Xbcj" "x86" "-9" "--extreme")/g' custom-profile/profiledef.sh
 
-          # 6. Final File Sync (Copy your local airootfs)
+          # 7. Copy YOUR local files
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
 
-          # 7. Root Unlock
+          # 8. Unlock Root
           sed -i 's/^root:[^:]*:/root::/' custom-profile/airootfs/etc/shadow 2>/dev/null || true
           mkdir -p custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/
           echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM" > custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
 
-          # 8. THE BUILD
+          # 9. FINAL BUILD
           mkdir -p out
           mkarchiso -v -w work -o out custom-profile/
 
-      - name: Rename and Release
+      - name: Release
         run: |
           mv out/*.iso out/zuccos-latest.iso
-
+          
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
