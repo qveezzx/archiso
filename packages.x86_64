@@ -1,16 +1,15 @@
-# CORE
 base
 linux-cachyos-rt-bore
-# linux firmwares
 linux-firmware-marvell
 linux-firmware-iwlwifi
-linux-firmware-ath10k        # Qualcomm/Atheros (very common)
-linux-firmware-realtek       # Realtek (very common)
-amd-ucode                    # For AMD CPUs
-intel-ucode                  # For Intel CPUs
-mesa                       # Provides OpenGL for all GPUs
-xf86-video-nouveau         # Open-source driver for NVIDIA
-linux-firmware-nouveau     # Essential firmware for the open driver
+linux-firmware-ath10k
+linux-firmware-realtek
+linux-firmware-amdgpu
+linux-firmware-nouveau
+amd-ucode
+intel-ucode
+mesa
+xf86-video-nouveau
 sudo
 base-devel
 networkmanager
@@ -19,15 +18,11 @@ yay
 git
 chaotic-keyring
 cachyos-keyring
-
-# INSTALLER
-calamares
+cachyos-calamares
 kpmcore
 polkit-qt5
 qt5-svg
 ckbcomp
-
-# MINIMAL DESKTOP (Openbox)
 xorg-server
 xorg-xinit
 openbox
