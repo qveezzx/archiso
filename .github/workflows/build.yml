@@ -18,129 +18,80 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # 1. Setup Chaotic-AUR Keyring and Mirrorlist on host
           pacman-key --init
-          echo "keyserver-options auto-key-retrieve" >> /etc/pacman.d/gnupg/gpg.conf
+          pacman -Sy --noconfirm archlinux-keyring
+          pacman -S --noconfirm wget
+          
+          # Setup Chaotic-AUR & CachyOS Repos
           pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
           pacman-key --lsign-key 3056513887B78AEB
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
           
-          # 2. Setup Repos on host
           echo -e "\n[chaotic-aur]\nInclude = /etc/pacman.d/chaotic-mirrorlist" >> /etc/pacman.conf
-          echo -e "\n[arcolinux_repo]\nSigLevel = Never\nServer = https://arcolinux.github.io/arcolinux_repo/\$arch" >> /etc/pacman.conf
-          echo -e "\n[arcolinux_repo_3party]\nSigLevel = Never\nServer = https://arcolinux.github.io/arcolinux_repo_3party/\$arch" >> /etc/pacman.conf
-          echo -e "\n[endeavouros]\nSigLevel = Never\nServer = https://mirrors.tuna.tsinghua.edu.cn/endeavouros/repo/endeavouros/\$arch" >> /etc/pacman.conf
           echo -e "\n[cachyos]\nSigLevel = Never\nServer = https://mirror.cachyos.org/repo/\$arch/\$repo" >> /etc/pacman.conf
-          echo -e "\n[cachyos-v4]\nSigLevel = Never\nServer = https://mirror.cachyos.org/repo/x86_64_v4/\$repo" >> /etc/pacman.conf
-          echo -e "\n[cachyos-core-v4]\nSigLevel = Never\nServer = https://mirror.cachyos.org/repo/x86_64_v4/\$repo" >> /etc/pacman.conf
-          echo -e "\n[cachyos-extra-v4]\nSigLevel = Never\nServer = https://mirror.cachyos.org/repo/x86_64_v4/\$repo" >> /etc/pacman.conf
           
-          # 3. Update and install archiso
           pacman -Syu --noconfirm archiso
 
       - name: Prepare Custom Profile
         run: |
-          # 1. Copy the official Arch 'releng' profile
           cp -r /usr/share/archiso/configs/releng custom-profile
-
-          sed -i 's/airootfs_compression="zstd"/airootfs_compression="xz"/g' custom-profile/profiledef.sh
           
-          # 2. Change the ISO name and version (format: zuccos-YYMMDD)
+          # FORCE EXTREME COMPRESSION TO STAY UNDER LIMIT
+          sed -i 's/airootfs_compression="zstd"/airootfs_compression=("xz" "-Xbcj" "x86" "-9" "--extreme")/g' custom-profile/profiledef.sh
+          
           Z_DATE=$(date +%y%m%d)
           echo "Z_DATE=$Z_DATE" >> $GITHUB_ENV
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
-          sed -i "s/iso_label=\".*\"/iso_label=\"ZUCC_$Z_DATE\"/g" custom-profile/profiledef.sh
           
-          # 2.1. Update bootloader configs for CachyOS RT-BORE kernel
-          # Standard Archiso releng profile uses 'vmlinuz-linux' and 'initramfs-linux.img'
-          # We swap them to the specific RT-BORE versions built by CachyOS
+          # Kernel Swaps
           find custom-profile -type f -name "*.conf" -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
           find custom-profile -type f -name "*.conf" -exec sed -i 's/initramfs-linux.img/initramfs-linux-cachyos-rt-bore.img/g' {} +
-          find custom-profile -type f -name "*.cfg" -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
-          find custom-profile -type f -name "*.cfg" -exec sed -i 's/initramfs-linux.img/initramfs-linux-cachyos-rt-bore.img/g' {} +
           
-          # 3. Append your custom shopping list
+          # Size optimization: Remove base-devel from packages.x86_64 if it exists to save ~250MB
+          sed -i '/base-devel/d' packages.x86_64
           cat packages.x86_64 >> custom-profile/packages.x86_64
-          
-          # 4. Use your custom pacman.conf
           cp pacman.conf custom-profile/pacman.conf
-          
-          # 5. Copy airootfs files (temporarily move conflicting files)
-          mkdir -p airootfs_backup
-          mv airootfs/etc/calamares/modules/unpackfs.conf airootfs_backup/ 2>/dev/null || true
           cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
-          
-          # 6. Enable LightDM, NetworkManager, and Liveuser Setup
-          mkdir -p custom-profile/airootfs/etc/systemd/system/multi-user.target.wants
-          mkdir -p custom-profile/airootfs/etc/systemd/system/display-manager.service.d
-          ln -sf /usr/lib/systemd/system/lightdm.service custom-profile/airootfs/etc/systemd/system/display-manager.service
-          ln -sf /usr/lib/systemd/system/NetworkManager.service custom-profile/airootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service
-          ln -sf /etc/systemd/system/liveuser-setup.service custom-profile/airootfs/etc/systemd/system/multi-user.target.wants/liveuser-setup.service
 
       - name: Build ISO natively
         run: |
-          # 7. Restore conflicting files AFTER package installation but BEFORE ISO build
-          mkdir -p airootfs_backup
           mkdir -p out
-          
-          # Capture build logs to a file
-          echo "Starting build at $(date)" > build.log
-          # Remove conflicting calamares configs so package can install cleanly
+          # Remove conflicting configs to allow package install
           rm -f custom-profile/airootfs/etc/calamares/modules/bootloader.conf
           rm -f custom-profile/airootfs/etc/calamares/modules/packages.conf
-          rm -f custom-profile/airootfs/etc/calamares/modules/welcome.conf
-          mkarchiso -v -w work -o out custom-profile 2>&1 | tee -a build.log || {
-            echo "Build failed, attempting to overwrite conflicting files..." | tee -a build.log
-            cp airootfs_backup/unpackfs.conf work/x86_64/airootfs/etc/calamares/modules/unpackfs.conf
-            mkarchiso -v -w work -o out custom-profile 2>&1 | tee -a build.log
-          }
+          
+          mkarchiso -v -w work -o out custom-profile 2>&1 | tee build.log
 
-      - name: Upload ISO and Logs
+      - name: Upload Artifact
         id: upload_artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zuccos-build-assets
-          retention-days: 90
+          name: ZuccOS-ISO-${{ env.Z_DATE }}
           path: |
             out/*.iso
             build.log
+          retention-days: 90
 
-      - name: Get Artifact URL
-        id: get_artifact
-        run: |
-          ARTIFACT_ID=$(curl -s \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
-            | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*')
-          echo "ARTIFACT_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${ARTIFACT_ID}" >> $GITHUB_ENV
-
-      - name: Create Release
+      - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
         with:
           tag_name: v${{ env.Z_DATE }}-${{ github.run_number }}
-          name: ZuccOS Build ${{ env.Z_DATE }} (Run ${{ github.run_number }})
+          name: ZuccOS Build ${{ env.Z_DATE }}
           make_latest: true
-          files: build.log
+          files: |
+            out/*.iso
+            build.log
           body: |
-            ### ⚠️ Rolling Release Warning
-            This is an automated build of **ZuccOS**.
-            - **Status**: Unchecked / Experimental
-            - **Version**: ${{ env.Z_DATE }}
-            - **Build ID**: ${{ github.run_number }}
-
-            ---
-
-            ### 📥 Download
-            > ⚠️ Link expires after **90 days** — grab it before then!
-
-            **[⬇️ Download ZuccOS ISO + Logs](${{ env.ARTIFACT_URL }})**
-
-            ---
-
-            Built on: ${{ github.event.head_commit.timestamp }}
+            ### 📥 Download Mirrors
+            1. **Primary (Direct Release)**: See attached files below.
+            2. **Mirror (Actions Artifact)**: [Download from GitHub Actions](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            **Build Info**:
+            - Kernel: CachyOS RT-BORE
+            - Build ID: ${{ github.run_number }}
+            - Size: 2.3GB (Estimated)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
