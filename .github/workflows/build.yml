@@ -97,24 +97,30 @@ jobs:
             build.log
           retention-days: 90
 
-      - name: Create Release and Upload Assets
+      - name: Create Release
+        id: create_release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
         with:
           tag_name: v${{ env.Z_DATE }}-${{ github.run_number }}
-          name: ZuccOS Build ${{ env.Z_DATE }}
+          name: ZuccOS Build ${{ env.Z_DATE }} (Run ${{ github.run_number }})
           make_latest: true
-          files: |
-            out/*.iso
-            build.log
+          # We only include build.log here initially to ensure the release is created
+          files: build.log
           body: |
-            ### 📥 Download Mirrors
-            1. **Primary (Direct Release)**: See attached files below.
-            2. **Mirror (Actions Artifact)**: [Download from GitHub Actions](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            ### ⚠️ ISO Download Notice
+            The ISO for this build is currently available via the **GitHub Actions Artifacts** link below.
             
-            **Build Info**:
-            - Kernel: CachyOS RT-BORE
-            - Build ID: ${{ github.run_number }}
-            - Size: 2.3GB (Estimated)
+            **[⬇️ Download ZuccOS ISO + Logs](${{ env.ARTIFACT_URL }})**
+            
+            *Note: If the direct ISO attachment is missing, it exceeded GitHub's 2GB release limit. Use the link above.*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attempt ISO Upload to Release
+        # This step tries to upload the ISO, but continues even if it fails
+        continue-on-error: true
+        run: |
+          gh release upload v${{ env.Z_DATE }}-${{ github.run_number }} out/*.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
