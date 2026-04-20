@@ -59,6 +59,8 @@ jobs:
         run: |
           mkdir -p out
           # Remove conflicting configs to allow package install
+          rm -f custom-profile/airootfs/etc/calamares/modules/unpackfs.conf
+          rm -f custom-profile/airootfs/etc/calamares/modules/welcome.conf
           rm -f custom-profile/airootfs/etc/calamares/modules/bootloader.conf
           rm -f custom-profile/airootfs/etc/calamares/modules/packages.conf
           
