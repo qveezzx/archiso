@@ -109,6 +109,11 @@ jobs:
 
       - name: Build ISO
         run: |
+          # 1. Final Sync: Overwrite package defaults with your local repo files
+          # This avoids the 'file exists' error during package installation
+          cp -rf custom-profile/airootfs-overlay/* custom-profile/airootfs/
+
+          # 2. Start the actual build process
           mkdir -p out
           mkarchiso -v -w work -o out custom-profile/
 
