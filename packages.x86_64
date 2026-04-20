@@ -1,15 +1,8 @@
+# --- CORE SYSTEM ---
 base
 linux-cachyos-rt-bore
-linux-firmware-marvell
-linux-firmware-intel
-linux-firmware-atheros
-linux-firmware-realtek
-linux-firmware-amdgpu
-linux-firmware-nvidia
-amd-ucode
-intel-ucode
-mesa
-xf86-video-nouveau
+# Headers are needed if you plan to compile drivers later
+linux-cachyos-rt-bore-headers
 sudo
 base-devel
 networkmanager
@@ -18,19 +11,48 @@ yay
 git
 chaotic-keyring
 cachyos-keyring
-cachyos-calamares
-kpmcore
-polkit-qt5
-qt5-svg
-ckbcomp
+
+# --- FIRMWARE & MICROCODE ---
+# Good job here, keeping the essentials
+linux-firmware-marvell
+linux-firmware-intel
+linux-firmware-atheros
+linux-firmware-realtek
+linux-firmware-amdgpu
+linux-firmware-nvidia
+amd-ucode
+intel-ucode
+
+# --- GRAPHICS & DISPLAY ---
+mesa
+xf86-video-nouveau
+xf86-video-fbdev
+# ADDING Intel and AMD video drivers for better performance
+xf86-video-intel
+xf86-video-amdgpu
 xorg-server
 xorg-xinit
+
+# --- DESKTOP ENVIRONMENT (Openbox) ---
 openbox
-lightdm
-lightdm-gtk-greeter
-xterm
-xf86-video-fbdev
 tint2
 feh
 obconf-qt
 lxappearance
+# ADDING a terminal that doesn't look like 1992
+kitty
+# ADDING a compositor (Fixes the "white boxes" and glitchy windows)
+picom
+
+# --- INSTALLER (Calamares) ---
+cachyos-calamares
+cachyos-calamares-config
+kpmcore
+polkit-qt5
+qt5-svg
+ckbcomp
+# ADDING missing dependencies often skipped in live environments
+yaml-cpp
+boost-libs
+# This allows Calamares to run as root from the GUI
+polkit-gnome

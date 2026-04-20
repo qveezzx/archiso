@@ -21,16 +21,35 @@ jobs:
           pacman-key --init
           pacman -Sy --noconfirm archlinux-keyring
           pacman -S --noconfirm wget
-          
-          # Setup Chaotic-AUR & CachyOS Repos
+
+          # Setup Chaotic-AUR Keyring
           pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
           pacman-key --lsign-key 3056513887B78AEB
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
-          
-          echo -e "\n[chaotic-aur]\nInclude = /etc/pacman.d/chaotic-mirrorlist" >> /etc/pacman.conf
-          echo -e "\n[cachyos]\nSigLevel = Never\nServer = https://mirror.cachyos.org/repo/\$arch/\$repo" >> /etc/pacman.conf
-          
+
+          # OVERWRITE pacman.conf to force CachyOS priority (#1)
+          # This ensures Calamares finds the correct library versions
+          echo '
+          [options]
+          HoldPkg = pacman glibc
+          Architecture = auto
+          SigLevel = Never
+
+          [cachyos]
+          Server = https://mirror.cachyos.org/repo/$arch/$repo
+
+          [chaotic-aur]
+          Include = /etc/pacman.d/chaotic-mirrorlist
+
+          [core]
+          Include = /etc/pacman.d/mirrorlist
+
+          [extra]
+          Include = /etc/pacman.d/mirrorlist
+          ' > /etc/pacman.conf
+
+          # Final sync and install archiso
           pacman -Syu --noconfirm archiso
 
       - name: Prepare Custom Profile
@@ -48,6 +67,13 @@ jobs:
           # Kernel Swaps
           find custom-profile -type f -name "*.conf" -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
           find custom-profile -type f -name "*.conf" -exec sed -i 's/initramfs-linux.img/initramfs-linux-cachyos-rt-bore.img/g' {} +
+
+          # Force the bootloaders to point to the correct kernel filename
+          sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' custom-profile/profiledef.sh
+
+          # Ensure autologin is set to root for the Live environment
+          mkdir -p custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/
+          echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM" > custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
 
           # Force mkinitcpio to use the CachyOS RT-BORE kernel preset
           # This prevents the "vmlinuz-linux not found" error
@@ -86,6 +112,10 @@ jobs:
           # 4. Final Run: Run mkarchiso again. It will see the files are already there and 
           # just finish the compression using YOUR versions.
           mkarchiso -v -w work -o out custom-profile 2>&1 | tee -a build.log
+
+          # Get the size of the ISO and save it to GITHUB_ENV for the release body
+          ISO_SIZE_HUMAN=$(du -h out/*.iso | cut -f1)
+          echo "ISO_SIZE=$ISO_SIZE_HUMAN" >> $GITHUB_ENV
 
       - name: Upload Artifact
         id: upload_artifact
