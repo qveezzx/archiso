@@ -18,27 +18,45 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # 1. Initialize keys properly
           pacman-key --init
+          pacman-key --populate archlinux
           pacman -Sy --noconfirm archlinux-keyring archiso wget git
           
-          # Setup Chaotic Keyring
+          # 2. Setup Chaotic-AUR Keyring
           pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
           pacman-key --lsign-key 3056513887B78AEB
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
+          pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
 
-          # Force the CachyOS repo into pacman.conf with escaped variables
-          # We use single quotes around the EOF to prevent bash from expanding $arch and $repo
-          cat << 'EOF' >> /etc/pacman.conf
+          # 3. OVERWRITE pacman.conf with HARDCODED values
+          # We put Arch on top for stability (fixes ISA error) 
+          # but we add CachyOS so we can pull the installer libs.
+          echo '
+          [options]
+          HoldPkg = pacman glibc
+          Architecture = auto
+          SigLevel = Never
+
+          [core]
+          Include = /etc/pacman.d/mirrorlist
+
+          [extra]
+          Include = /etc/pacman.d/mirrorlist
 
           [cachyos]
           SigLevel = Never
-          Server = https://mirror.cachyos.org/repo/x86_64/$repo
-          EOF
-          
-          # Sync twice to clear any partial metadata
+          Server = https://mirror.cachyos.org/repo/x86_64/cachyos
+
+          [chaotic-aur]
+          Include = /etc/pacman.d/chaotic-mirrorlist
+          ' > /etc/pacman.conf
+
+          # 4. Force a massive sync
           pacman -Syy
-          
-          # Explicitly target the cachyos repo for these libraries
+
+          # 5. Force install the specific libraries Calamares needs from CachyOS
+          # This syntax (repo/package) ensures we get the CachyOS versions
           pacman -S --noconfirm cachyos/yaml-cpp cachyos/boost-libs
 
       - name: Prepare Custom Profile
