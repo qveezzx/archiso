@@ -55,65 +55,43 @@ jobs:
           sed -i '/base-devel/d' packages.x86_64
           cp packages.x86_64 custom-profile/packages.x86_64
 
-          # 3. Create the mkinitcpio.conf with ARCHISO hooks
+          # 3. Pacman.conf Setup (THE KEY FIX)
+          # We tell pacman NOT to install the default Calamares configs 
+          # so your local ones can exist without conflict errors.
+          cp pacman.conf custom-profile/pacman.conf
+          sed -i 's/SigLevel = .*/SigLevel = Never/g' custom-profile/pacman.conf
+          sed -i '/\[options\]/a NoExtract = etc/calamares/modules/*' custom-profile/pacman.conf
+
+          # 4. Create the mkinitcpio.conf with ARCHISO hooks
           mkdir -p custom-profile/airootfs/etc/
           echo 'HOOKS=(base udev memdisk archiso_loop_mnt archiso archiso_pxe_common archiso_pxe_nbd archiso_pxe_http archiso_pxe_nfs archiso_kms block filesystems keyboard)' > custom-profile/airootfs/etc/mkinitcpio.conf
 
-          # 4. ISO Naming & Compression
+          # 5. ISO Naming & Compression
           Z_DATE=$(date +%y%m%d)
           echo "Z_DATE=$Z_DATE" >> $GITHUB_ENV
           sed -i "s/iso_name=\"archlinux\"/iso_name=\"zuccos\"/g" custom-profile/profiledef.sh
           sed -i "s/iso_version=\".*\"/iso_version=\"$Z_DATE\"/g" custom-profile/profiledef.sh
           sed -i 's/airootfs_compression="zstd"/airootfs_compression=("xz" "-Xbcj" "x86" "-9" "--extreme")/g' custom-profile/profiledef.sh
 
-          # 5. Kernel Preset & Bootloader logic
+          # 6. Kernel Preset & Bootloader logic
           mkdir -p custom-profile/airootfs/etc/mkinitcpio.d/
           echo 'PRESETS=("main")
           main_config="/etc/mkinitcpio.conf"
           main_image="/boot/initramfs-linux.img"
           main_kver="/boot/vmlinuz-linux-cachyos-rt-bore"' > custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
-
           find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
           find custom-profile -type f \( -name "*.cfg" -o -name "*.conf" \) -exec sed -i 's/initramfs-linux-cachyos-rt-bore.img/initramfs-linux.img/g' {} +
 
-          # 6. Pacman.conf Setup (FORCE THE OVERWRITE)
-          # We add --overwrite to the pacman.conf inside the profile so it ignores existing files
-          cp pacman.conf custom-profile/pacman.conf
-          sed -i 's/SigLevel = .*/SigLevel = Never/g' custom-profile/pacman.conf
-          
-          # 7. MOVE YOUR LOCAL FILES LATER
-          # We don't copy airootfs here anymore! 
-          # mkarchiso will install the packages first into a clean root.
-          # We will use a script to copy your files AFTER the packages are installed.
+          # 7. Final Sync: Copy YOUR repo files into the profile
+          cp -r airootfs/* custom-profile/airootfs/ 2>/dev/null || true
 
-          - name: Setup Post-Install Sync
-        run: |
-          # Create a script that mkarchiso runs AFTER installing packages
-          mkdir -p custom-profile/airootfs/usr/local/bin/
-          cat << 'EOF' > custom-profile/airootfs/usr/local/bin/zucc-sync.sh
-          #!/bin/bash
-          # This runs INSIDE the ISO root after packages are installed
-          # We use this to force our local files over the package defaults
-          sed -i 's/^root:[^:]*:/root::/' /etc/shadow
-          EOF
-          chmod +x custom-profile/airootfs/usr/local/bin/zucc-sync.sh
-
-          # Now, copy your repo files to a temporary folder in the profile
-          # so we can move them into place after pacman is done
-          mkdir -p custom-profile/airootfs/root/repo_files
-          cp -r airootfs/* custom-profile/airootfs/root/repo_files/
-          
-          # Tell profiledef.sh to run a custom command
-          # (Actually, the easiest way is to just use the --overwrite flag in pacman.conf)
-          sed -i '/\[options\]/a NoExtract = etc/calamares/modules/*' custom-profile/pacman.conf
+          # 8. THE OVERRIDE: Unlock root & Autologin
+          sed -i 's/^root:[^:]*:/root::/' custom-profile/airootfs/etc/shadow
+          mkdir -p custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/
+          echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM" > custom-profile/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
 
       - name: Build ISO
         run: |
-          # 1. Final Sync: Overwrite package defaults with your local repo files
-          # This avoids the 'file exists' error during package installation
-          cp -rf custom-profile/airootfs-overlay/* custom-profile/airootfs/
-
-          # 2. Start the actual build process
           mkdir -p out
           mkarchiso -v -w work -o out custom-profile/
 
