@@ -48,6 +48,13 @@ jobs:
           # Kernel Swaps
           find custom-profile -type f -name "*.conf" -exec sed -i 's/vmlinuz-linux/vmlinuz-linux-cachyos-rt-bore/g' {} +
           find custom-profile -type f -name "*.conf" -exec sed -i 's/initramfs-linux.img/initramfs-linux-cachyos-rt-bore.img/g' {} +
+
+          # Force mkinitcpio to use the CachyOS RT-BORE kernel preset
+          # This prevents the "vmlinuz-linux not found" error
+          sed -i 's/ALL_kver=(.*/ALL_kver=( \/boot\/vmlinuz-linux-cachyos-rt-bore )/g' custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
+          
+          # Also ensure the output image name matches what the bootloader expects
+          sed -i 's/archiso_image=(.*/archiso_image=( \/boot\/initramfs-linux-cachyos-rt-bore.img )/g' custom-profile/airootfs/etc/mkinitcpio.d/linux.preset
           
           # Size optimization: Remove base-devel from packages.x86_64 if it exists to save ~250MB
           sed -i '/base-devel/d' packages.x86_64
