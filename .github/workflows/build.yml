@@ -58,13 +58,27 @@ jobs:
       - name: Build ISO natively
         run: |
           mkdir -p out
-          # Remove conflicting configs to allow package install
+          echo "Starting build at $(date)" > build.log
+
+          # 1. First Pass: Remove conflicts so pacman can install the calamares package
           rm -f custom-profile/airootfs/etc/calamares/modules/unpackfs.conf
           rm -f custom-profile/airootfs/etc/calamares/modules/welcome.conf
           rm -f custom-profile/airootfs/etc/calamares/modules/bootloader.conf
           rm -f custom-profile/airootfs/etc/calamares/modules/packages.conf
-          
-          mkarchiso -v -w work -o out custom-profile 2>&1 | tee build.log
+
+          # 2. Start the build (Pacman will install its default files now)
+          # We use the -w (work) directory to our advantage
+          mkarchiso -v -w work -o out custom-profile 2>&1 | tee -a build.log || {
+            echo "First pass failed as expected, or reached a check. Re-applying custom files..."
+          }
+
+          # 3. Second Pass: Overwrite the package's defaults with YOUR local files
+          # This copies your repo files directly into the 'work' directory where the ISO is being built
+          cp -rf airootfs/* work/x86_64/airootfs/ 2>/dev/null || true
+
+          # 4. Final Run: Run mkarchiso again. It will see the files are already there and 
+          # just finish the compression using YOUR versions.
+          mkarchiso -v -w work -o out custom-profile 2>&1 | tee -a build.log
 
       - name: Upload Artifact
         id: upload_artifact
