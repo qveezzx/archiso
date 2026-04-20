@@ -27,13 +27,13 @@ jobs:
           pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
 
           # Add CachyOS to the BOTTOM of the builder's conf
+          # We use a direct Server line instead of an Include to avoid the 'mirrorlist not found' error
           echo -e "\n[cachyos]\nSigLevel = Never\nServer = https://mirror.cachyos.org/repo/x86_64/\$repo" >> /etc/pacman.conf
           
-          # FORCE synchronization
+          # Force sync so pacman 'sees' the new repo
           pacman -Sy
-          
-          # PRE-INSTALL the correct libraries so they are in the cache
-          # This prevents the library mismatch in Calamares later
+
+          # THE FIX: Tell pacman EXACTLY which repo to use for these two
           pacman -S --noconfirm cachyos/yaml-cpp cachyos/boost-libs
 
       - name: Prepare Custom Profile
